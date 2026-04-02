@@ -54,7 +54,6 @@ def train(
     greater_is_better=True,
     save_total_limit=1,
     seed=42,
-    trust_remote_code=False,
 ):
     """
     Train a sequence classification model with Hugging Face Trainer.
