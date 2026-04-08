@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 
 from config import load_config
@@ -9,7 +10,8 @@ from preprocess import sanitize_df, dichotomize
 from splits import split_ds
 
 
-def main(config_path="config.yaml"):
+def main():
+    config_path = sys.argv[1]
     config = load_config(config_path)
 
     data_config = config["data"]
