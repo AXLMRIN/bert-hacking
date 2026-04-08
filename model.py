@@ -192,16 +192,8 @@ def predict(
     result = pd.DataFrame({
         "prediction": all_predictions,
         "scores": all_scores,
+        "true_label" : df[label_column].values,
+        "ID" : df[id_column].values
     })
-
-    if id_column is not None:
-        if id_column not in df.columns:
-            raise ValueError(f"Column '{id_column}' not found in dataframe")
-        result.insert(0, id_column, df[id_column].values)
-
-    if label_column is not None:
-        if label_column not in df.columns:
-            raise ValueError(f"Column '{label_column}' not found in dataframe")
-        result["true_label"] = df[label_column].values
 
     return result
