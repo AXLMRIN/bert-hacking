@@ -21,7 +21,7 @@ def main():
 
     prepare_env([training_config["output_dir"]])
 
-    df = pd.read_csv(data_config["input_path"])
+    df = pd.read_csv(data_config["input_path"], data_config.get("sep", ";"))
 
     df = sanitize_df(
         df,
