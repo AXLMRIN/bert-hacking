@@ -2,6 +2,7 @@ data:
   input_path: data/ideology_news-stratified_year_balanced.csv        # Path to your dataset
   text_column: content           # Column containing text
   label_column: bias_text            # Column containing labels
+  sep: ';'
 
   # Optional preprocessing
   drop_na_text: true
