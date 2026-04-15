@@ -23,7 +23,8 @@ from toolbox import (
     train_model,
     predict,
     to_saving_logs,
-    clean
+    clean, 
+    pick_seed
 )
 
 def single_run(
@@ -58,6 +59,7 @@ def single_run(
     TEST_MODE = kwargs.get("TEST_MODE", False)
     BATCH_SIZE = kwargs.get("BATCH_SIZE", 4)
     TOTAL_BATCH_SIZE = kwargs.get("TOTAL_BATCH_SIZE", 16)
+    SEED = pick_seed(**kwargs)
 
     logger("START LOOP" + "#" * 91, skip_line="before")
     logger(f"Starting Loop on task {task_name} {'(TEST_MODE)' if TEST_MODE else ''} and config {loop_config}")
@@ -67,6 +69,7 @@ def single_run(
         "task_name": task_name,
         "dataset_train": path_train_dataset,
         "dataset_predict": path_inference_dataset,
+        "SEED": SEED,
     }
     # Initialise outputs
     hash_, to_save = create_hash(**loop_ID), None
@@ -92,8 +95,8 @@ def single_run(
             }
 
             # Prepare dataset: N_train, train_eval_test_ratios
-            ds_loop: Dataset = sample_N_elements(dichotomized_df, SEED = 0, **loop_config)
-            dsd_loop : DatasetDict = split_ds(ds_loop, SEED = 0, **loop_config)
+            ds_loop: Dataset = sample_N_elements(dichotomized_df, SEED = SEED, **loop_config)
+            dsd_loop : DatasetDict = split_ds(ds_loop, SEED = SEED, **loop_config)
             dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
 
             # Prepare model: model_name
@@ -102,6 +105,8 @@ def single_run(
                 num_labels = len(label2id),
                 id2label   = id2label,
                 label2id   = label2id,
+                #TODO check for dropout
+                # hidden_dropout_prob = XXX
             )
 
             # Prepare trainer: learning_rate, weight_decay, warmup_ratio, dropout
@@ -110,8 +115,8 @@ def single_run(
                 output_dir=output_dir, 
                 batch_size_device=BATCH_SIZE, 
                 total_batch_size=TOTAL_BATCH_SIZE, 
+                SEED = SEED,
                 **loop_config
-                #TODO check for dropout
             )
 
             logger("Everything loaded — Start training")

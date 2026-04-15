@@ -5,7 +5,7 @@ from sklearn.metrics import f1_score
 from torch import Tensor
 from transformers import TrainingArguments, Trainer, EvalPrediction
 
-from .utils import get_device, clean
+from .utils import get_device, clean, pick_seed
 
 def load_training_arguments(
         output_dir :str, 
@@ -38,6 +38,8 @@ def load_training_arguments(
         save_total_limit =  2,
         disable_tqdm = kwargs.get("disable_tqdm", False), 
         dataloader_pin_memory = False if str(device) == "cuda" else True,
+        # SEED
+        seed = pick_seed(**kwargs)
     )
 
 def compute_metrics_multiclass(model_output: EvalPrediction):
