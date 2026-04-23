@@ -246,4 +246,14 @@ risk_M = risk / T
     - T représente l'ensemble des tâches, tandis que $H_t$ l'ensemble des hypothèses. D'après notre lecture, (Alexandre et Axel), on comprend que T revient à être la somme du nombre de tâches de classification à travers les jeux de données (i.e. $\sum_{d\in datasets}N^{labels}_d$ ) tandis que $H_t$ l'ensemble des regressions réalisé par label et par dataset (i.e. le nombre de covariates par dataset $\sum_{d\in datasets}N^{cov}_d$).
     - Les quantités "Risk" sont des moyennes, de moyennes, de moyennes, ... est-ce bien serieux?
     - aussi, il ne semble pas y avoir de contrôle sur la qualité des regressions (pas de filtre sur le F-score, ni le respect des hypothèses sur les erreurs). Est ce que le risque n'englobe pas tout un tas de regression qui seraient recallées en faisant les choses correctement? 
+    - Réduction d'hyperparamètres ? <br/>Avec misfinfo, entre 3 et 5min pour entrainement de modèles : 86400 runs de prévus (cf commande dans debbug_onyxia.txt). Ça fait donc au minimum 3*86400 = /60 = 259500min 4325heures /24 = 180jours. Avec ce simple jeu de donnée, et une seule carte GPU de 15Go, je mets donc minimum 180 jours, soit 6mois, pour tout faire tourner. C'est beaucoup trop, il faut donc qu'on réduire le nombre d'hyperparamètres.
+    - Est ce qu'on garde la fenêtre de contexte? Quelle expertise avons nous? 
+    - Est ce qu'on garde le dropout ? Quelle expertise avons nous? 
+    - Est ce qu'on garde le pooling ? Quelle expertise avons nous? 
+    - Est ce qu'on évalue tous les hyperparamètres? random search vs grid search<br/>**Dépendant du test statistique réalisé à la fin** Combien de configs devrions nous tester? Si oui, il faut documenter ça correctement + laisser la possibilité dans le pipeline de rajouter ces hyperparmètres si besoin dans le futur<br/>+ enjeux ethique sur le cout de calcul, notre argument contre les LLMs<br/>Note: 708 régressions par config d'hyperparamètres = + $60.10^6$ couples de regressions (Axel)
 
+Sugestions d'amélioration du code :
+- Mettre enregistrement de modèles sur Onyxia en facultatif (si on veut dans le ca soù les hyper paramètres sont réduits)
+- Renommer les folders voire certains scripts
+- Fusion scripts Axel et Léo
+- Logs enregistrés suffisants ?
