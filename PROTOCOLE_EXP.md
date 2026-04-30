@@ -24,7 +24,7 @@
 
 - **Pour chaque label, entraînement d'un classifieur binaire**
 - Ensemble d'hyperparamètres pouvant être explorés:
-    - `N_train` ⚠️ est ce qu'il y a suffisamment de données pour toutes les tâches? 
+    - `N_train` ⚠️ est ce qu'il y a suffisamment de données pour toutes les tâches? ⚠️ attention N_train représente N_datasaset et pas N_train
         - 500
         - 1000
         - 1500
@@ -247,10 +247,12 @@ risk_M = risk / T
     - Les quantités "Risk" sont des moyennes, de moyennes, de moyennes, ... est-ce bien serieux?
     - aussi, il ne semble pas y avoir de contrôle sur la qualité des regressions (pas de filtre sur le F-score, ni le respect des hypothèses sur les erreurs). Est ce que le risque n'englobe pas tout un tas de regression qui seraient recallées en faisant les choses correctement? 
     - Réduction d'hyperparamètres ? <br/>Avec misfinfo, entre 3 et 5min pour entrainement de modèles : 86400 runs de prévus (cf commande dans debbug_onyxia.txt). Ça fait donc au minimum 3*86400 = /60 = 259500min 4325heures /24 = 180jours. Avec ce simple jeu de donnée, et une seule carte GPU de 15Go, je mets donc minimum 180 jours, soit 6mois, pour tout faire tourner. C'est beaucoup trop, il faut donc qu'on réduire le nombre d'hyperparamètres.
-    - Est ce qu'on garde la fenêtre de contexte? Quelle expertise avons nous? 
-    - Est ce qu'on garde le dropout ? Quelle expertise avons nous? 
-    - Est ce qu'on garde le pooling ? Quelle expertise avons nous? 
+    - Est ce qu'on garde la fenêtre de contexte? 
+    - Est ce qu'on garde le dropout ? Quelle expertise avons nous? -> Uniquement dans la couche de classification
+    - Est ce qu'on garde le pooling ?
     - Est ce qu'on évalue tous les hyperparamètres? random search vs grid search<br/>**Dépendant du test statistique réalisé à la fin** Combien de configs devrions nous tester? Si oui, il faut documenter ça correctement + laisser la possibilité dans le pipeline de rajouter ces hyperparmètres si besoin dans le futur<br/>+ enjeux ethique sur le cout de calcul, notre argument contre les LLMs<br/>Note: 708 régressions par config d'hyperparamètres = + $60.10^6$ couples de regressions (Axel)
+    - Comment qu'on gère les regressions qui convergent pas ? on traite comme "non significative" ? comment on les comptes au niveau du type de l'erreur? _doit y avoir un moyen que ça converge tout le temps_
+    - Au lieu d'une grid on pourrait avoir des valeurs qui dépendent du modèle (ex lr grand pour petit modele et lr plus petits pour grands modèles) ⚠️ génère des correlations entre variables independantes pour possible regression à posteriori)
 
 Sugestions d'amélioration du code :
 - Mettre enregistrement de modèles sur Onyxia en facultatif (si on veut dans le ca soù les hyper paramètres sont réduits)
