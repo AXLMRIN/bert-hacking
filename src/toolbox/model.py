@@ -63,6 +63,7 @@ def train_model(
 ) -> str :
     """
     """
+    output = None
     try: 
         device = get_device()
         for split in dsd:
