@@ -32,12 +32,12 @@ def create_hash(loop_config:LoopConfig)->str:
     h.update(s.encode())
     return h.hexdigest()
 
-def already_done(loop_ID:LoopConfig):
+def already_done(loop_config:LoopConfig):
     """check if the hash exists in the saving logs."""
     with open("./results/saving_logs.json", "r") as file :
         saving_logs = json.load(file)
     check_list = [
-        loop_ID == LoopConfig(v)
+        loop_config == LoopConfig(**v)
         for v in saving_logs.values()
     ]
     return np.array(check_list).any()

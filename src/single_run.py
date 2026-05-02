@@ -44,7 +44,7 @@ def single_run(
             output (F1, hash and path to predictions csv)
     """
 
-    logger = CustomLogger("./custom_logs"); logger.start_loop_log(loop_config)
+    logger = CustomLogger("./custom_logs")
 
     # Use time as hash
     hash_, logs_to_save = create_hash(loop_config), None
@@ -124,7 +124,6 @@ def single_run(
             del tokenizer, ds_loop, dsd_loop, ds_pred, predictions, model
             clean() 
 
-    logger("END LOOP" + "#" * 92)
     return hash_, logs_to_save
 
 if __name__=="__main__":
