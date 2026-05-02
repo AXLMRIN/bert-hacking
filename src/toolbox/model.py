@@ -99,11 +99,12 @@ def predict(model, ds : Dataset, batch_size: int, id2label: dict[int:str])->pd.D
     print(f"Predict on {device}")
     
     ds = ds.with_format("torch", device=device)
-    model = model.to(device=device)# .eval() ??
+    model = model.to(device=device)
+    model.eval()
 
     output_df = []
     for batch in ds.batch(batch_size):
-        probs = model(input_ids = batch["input_ids"]).logits.detach().cpu().softmax(1).numpy()
+        probs = model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"]).logits.detach().cpu().softmax(1).numpy()
         y_pred = np.argmax(probs, axis = 1).reshape(-1)
 
         output_df += [
