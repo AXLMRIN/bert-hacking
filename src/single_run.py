@@ -99,7 +99,7 @@ def single_run(
                 'max_length' : max_length_capped
             }
 
-            # Prepare dataset: N_annotated, train_eval_test_ratios
+            # Prepare dataset: N_annotated, splits_ratio
             ds_loop: Dataset = sample_N_elements(dichotomized_df, SEED = SEED, **loop_config)
             dsd_loop : DatasetDict = split_ds(ds_loop, SEED = SEED, **loop_config)
             dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))

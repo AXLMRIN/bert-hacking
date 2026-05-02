@@ -67,26 +67,26 @@ def sample_N_elements(df: pd.DataFrame, N_annotated: int, **kwargs)->pd.DataFram
     """
     return Dataset.from_pandas(df.sample(N_annotated, random_state=pick_seed(**kwargs)))
 
-def split_ds(ds : Dataset, train_eval_test_ratios : list[int], **kwargs)-> DatasetDict:
+def split_ds(ds : Dataset, splits_ratio : list[int], **kwargs)-> DatasetDict:
     """
-    takes the train_eval_test_ratios (ex: [80, 10, 10]) and return a DatasetDict
+    takes the splits_ratio (ex: [80, 10, 10]) and return a DatasetDict
     """
-    if len(train_eval_test_ratios) != 3:
+    if len(splits_ratio) != 3:
         raise ValueError(
-            f"There should be three ints in train_eval_test_ratios. Found: " 
-            f"{train_eval_test_ratios}"
+            f"There should be three ints in splits_ratio. Found: " 
+            f"{splits_ratio}"
         )
-    if sum(train_eval_test_ratios) != 100:
+    if sum(splits_ratio) != 100:
         raise ValueError(
-            f"The sum of train_eval_test_ratios shoul be 100. Found: "
-            f"{train_eval_test_ratios}"
+            f"The sum of splits_ratio shoul be 100. Found: "
+            f"{splits_ratio}"
         )
     out_dsd = ds.train_test_split(
-        train_size= train_eval_test_ratios[0] / 100, # Train proportion 
+        train_size= splits_ratio[0] / 100, # Train proportion 
         shuffle=True,
         seed=pick_seed(**kwargs)
     )
-    resplit_ratio = 100 * train_eval_test_ratios[1] / (train_eval_test_ratios[1] + train_eval_test_ratios[2])
+    resplit_ratio = 100 * splits_ratio[1] / (splits_ratio[1] + splits_ratio[2])
     temp_dsd = out_dsd["test"].train_test_split(
         train_size = resplit_ratio / 100, 
         shuffle=True, 
