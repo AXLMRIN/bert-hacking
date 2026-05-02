@@ -1,12 +1,16 @@
 import hashlib 
 import json 
 from gc import collect as gc_collect
+from time import time
 
+import numpy as np
 from transformers import AutoTokenizer
 from torch import device
 from torch.cuda import is_available as cuda_available
 from torch.cuda import empty_cache, synchronize, ipc_collect
 from torch.backends.mps import is_available as mps_available
+
+from . import LoopConfig
 
 def extract_hyperparameters(config_json: dict):
     """
@@ -22,29 +26,27 @@ def extract_hyperparameters(config_json: dict):
     ]
     return parameter_names, parameters_values
 
-def create_hash(**kwargs)->str:
-    s = "|".join([f"{k}:{v}" for k,v in kwargs.items()])
+def create_hash(loop_config:LoopConfig)->str:
+    s = str(time()).replace(".","") + f"-{loop_config.task_name}"
     h = hashlib.new('sha256')
     h.update(s.encode())
     return h.hexdigest()
 
-def already_done(hash_:str):
+def already_done(loop_ID:LoopConfig):
     """check if the hash exists in the saving logs."""
     with open("./results/saving_logs.json", "r") as file :
         saving_logs = json.load(file)
-    return hash_ in saving_logs
+    check_list = [
+        loop_ID == LoopConfig(v)
+        for v in saving_logs.values()
+    ]
+    return np.array(check_list).any()
 
-def load_tokenizer(model_name: str, **kwargs):
+def load_tokenizer(loop_config: LoopConfig):
     try: 
-        return AutoTokenizer.from_pretrained(model_name, trust_remote_code = True)
+        return AutoTokenizer.from_pretrained(loop_config.model_name, trust_remote_code = True)
     except Exception as e:
-        raise ValueError("Could not load the Tokenizer.\nErreur:{e}")
-    
-def pick_seed(**kwargs)->int:
-    if "SEED" in kwargs:
-        return kwargs["SEED"]
-    else:
-        return 42
+        raise ValueError(f"Could not load the Tokenizer.\nErreur:{e}")
     
 def get_device() -> device:
     if cuda_available():

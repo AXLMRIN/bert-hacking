@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd 
 from transformers import AutoConfig
 
-from .utils import pick_seed
+from . import LoopConfig
 
 def sanitize_df(df: pd.DataFrame, text_col: str, label_col:str, id_col:str, **kwargs)->pd.DataFrame:
     if not np.isin([text_col, label_col, id_col], df.columns).all():
@@ -33,7 +33,12 @@ def sanitize_df(df: pd.DataFrame, text_col: str, label_col:str, id_col:str, **kw
     else:
         raise ValueError("ID column contains non-unique values.")
 
-def dichotomize(df: pd.DataFrame, label:str) -> tuple[pd.DataFrame, dict[str:int], dict[int:str]]:
+def dichotomize(df: pd.DataFrame, loop_config: LoopConfig) -> tuple[pd.DataFrame, dict[str:int], dict[int:str]]:
+    """
+    Dichotomize dataframe given a label
+    """
+    label = loop_config.dichotomization_label
+    
     if label not in df["LABEL"].values:
         raise ValueError(f"Label ({label}) not in df[\"LABEL\"]. "
                          f"Available labels: {df['LABEL'].unique()}")
@@ -61,16 +66,17 @@ def cap_max_length(max_n_tokens : int, context_window_rel_to_max : int, model_na
     model_max = AutoConfig.from_pretrained(model_name).max_position_embeddings - 1
     return int(min(requested, model_max))
 
-def sample_N_elements(df: pd.DataFrame, N_annotated: int, **kwargs)->pd.DataFrame:
+def sample_N_elements(df: pd.DataFrame, loop_config: LoopConfig)->pd.DataFrame:
     """
     Sample N elements
     """
-    return Dataset.from_pandas(df.sample(N_annotated, random_state=pick_seed(**kwargs)))
+    return Dataset.from_pandas(df.sample(loop_config.N_annotated, random_state=loop_config.seed))
 
-def split_ds(ds : Dataset, splits_ratio : list[int], **kwargs)-> DatasetDict:
+def split_ds(ds : Dataset, loop_config: LoopConfig)-> DatasetDict:
     """
     takes the splits_ratio (ex: [80, 10, 10]) and return a DatasetDict
     """
+    splits_ratio = loop_config.splits_ratio
     if len(splits_ratio) != 3:
         raise ValueError(
             f"There should be three ints in splits_ratio. Found: " 
@@ -84,13 +90,13 @@ def split_ds(ds : Dataset, splits_ratio : list[int], **kwargs)-> DatasetDict:
     out_dsd = ds.train_test_split(
         train_size= splits_ratio[0] / 100, # Train proportion 
         shuffle=True,
-        seed=pick_seed(**kwargs)
+        seed=loop_config.seed
     )
     resplit_ratio = 100 * splits_ratio[1] / (splits_ratio[1] + splits_ratio[2])
     temp_dsd = out_dsd["test"].train_test_split(
         train_size = resplit_ratio / 100, 
         shuffle=True, 
-        seed=pick_seed(**kwargs)
+        seed=loop_config.seed
     )
     out_dsd["train-eval"] = temp_dsd["train"]
     out_dsd["test"] = temp_dsd["test"]

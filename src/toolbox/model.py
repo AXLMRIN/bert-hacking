@@ -5,41 +5,35 @@ from sklearn.metrics import f1_score
 from torch import Tensor
 from transformers import TrainingArguments, Trainer, EvalPrediction
 
-from .utils import get_device, clean, pick_seed
+from . import LoopConfig
+from .utils import get_device, clean
 
-def load_training_arguments(
-        output_dir :str, 
-        batch_size_device: int, 
-        total_batch_size : int = 16, 
-        **kwargs
-    ) -> TrainingArguments:
+def load_training_arguments(loop_config: LoopConfig) -> TrainingArguments:
     device = get_device()
     return TrainingArguments(
         bf16=True, # Faster training
         # Hyperparameters
-        num_train_epochs = kwargs.get("n_epochs", 4),
-        learning_rate = kwargs.get("learning_rate", 1e-5),
-        weight_decay  = kwargs.get("weight_decay", 0.0),
-        warmup_ratio  = kwargs.get("warmup_ratio", 0.05),
-        # dropout = kwargs.get("dropout", 0.1), #TODO check for dropout
+        num_train_epochs = loop_config.n_epochs,
+        learning_rate = loop_config.learning_rate,
+        weight_decay  = loop_config.weight_decay,
         # Second order hyperparameters
-        per_device_train_batch_size = batch_size_device,
-        per_device_eval_batch_size = batch_size_device,
-        gradient_accumulation_steps = total_batch_size // batch_size_device,
+        per_device_train_batch_size = loop_config.device_batch_size,
+        per_device_eval_batch_size = loop_config.device_batch_size,
+        gradient_accumulation_steps = max(loop_config.batch_size // loop_config.device_batch_size, 1),
         # Metrics
         metric_for_best_model="f1_macro",
         # Pipe
-        output_dir = output_dir,
+        output_dir = loop_config.output_dir,
         overwrite_output_dir=True,
         eval_strategy = "epoch",
         logging_strategy = "epoch",
         save_strategy = "epoch",
         load_best_model_at_end = True,
         save_total_limit =  2,
-        disable_tqdm = kwargs.get("disable_tqdm", False), 
+        disable_tqdm = False, 
         dataloader_pin_memory = False if str(device) == "cuda" else True,
         # SEED
-        seed = pick_seed(**kwargs)
+        seed = loop_config.seed
     )
 
 def compute_metrics_multiclass(model_output: EvalPrediction):
@@ -59,7 +53,7 @@ def train_model(
     model, 
     training_args : TrainingArguments,
     dsd : DatasetDict,
-    test_mode: bool = False, 
+    loop_config: LoopConfig,
 ) -> str :
     """
     """
@@ -68,7 +62,7 @@ def train_model(
         device = get_device()
         for split in dsd:
             dsd[split] = dsd[split].with_format("torch", device=device)
-            if test_mode:
+            if loop_config.test_mode:
                 dsd[split] = dsd[split].select(range(20))
         
         model = model.to(device=device)
@@ -89,8 +83,10 @@ def train_model(
         clean()
     return output
 
-def predict(model, ds : Dataset, batch_size: int, id2label: dict[int:str])->pd.DataFrame:
+def predict(model, ds : Dataset, loop_config: LoopConfig, id2label: dict[int:str])->pd.DataFrame:
     if "input_ids" not in ds.features:
+        raise ValueError("Please tokenize texts first")
+    if "attention_mask" not in ds.features:
         raise ValueError("Please tokenize texts first")
     if not np.isin(["ID", "LABEL"], list(ds.features.keys())).all():
         raise ValueError("Please sanitize you Dataset first")
@@ -98,12 +94,14 @@ def predict(model, ds : Dataset, batch_size: int, id2label: dict[int:str])->pd.D
     device = get_device()
     print(f"Predict on {device}")
     
+    if loop_config.test_mode: ds = ds.select(range(20))
+
     ds = ds.with_format("torch", device=device)
     model = model.to(device=device)
     model.eval()
 
     output_df = []
-    for batch in ds.batch(batch_size):
+    for batch in ds.batch(loop_config.batch_size):
         probs = model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"]).logits.detach().cpu().softmax(1).numpy()
         y_pred = np.argmax(probs, axis = 1).reshape(-1)
 
