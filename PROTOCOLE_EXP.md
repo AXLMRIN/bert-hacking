@@ -13,7 +13,7 @@
 ### Selection du jeu de données et prétraitement
 
 - Choix d'un jeu de données avec **au moins 2000 éléments** et qui **contient des métadonnées intéressantes**. _Jeux de données considérés: manifestos (Léo), ideology news (Axel), misinfo (Alexandre)._
-- Création des splits (Train, Test, Inférence). `N_train` est un hyperparamètre, `N_inference` doit correspondre au nombre d'éléments annotés dans le papier LLM Hacking (p.9). 
+- Création des splits (Train, Test, Inférence). `N_annotated` est un hyperparamètre, `N_inference` doit correspondre au nombre d'éléments annotés dans le papier LLM Hacking (p.9). 
     - Possibilité d'essayer d'avoir des overlaps entre l'ensemble d'entraînement / ensemble d'inference
 - Les splits doivent être créés par tirage aléatoire _(vérifier qu'il n'y a pas de doublon)_. Le tirage peut être stratifié (à documenter).
     - _Possibilité d'étendre à un tirage non aléatoire similaire à une situation d'active learning._
@@ -24,7 +24,7 @@
 
 - **Pour chaque label, entraînement d'un classifieur binaire**
 - Ensemble d'hyperparamètres pouvant être explorés:
-    - `N_train` ⚠️ est ce qu'il y a suffisamment de données pour toutes les tâches? ⚠️ attention N_train représente N_datasaset et pas N_train
+    - `N_annotated` ⚠️ est ce qu'il y a suffisamment de données pour toutes les tâches?
         - 500
         - 1000
         - 1500

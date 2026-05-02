@@ -10,7 +10,7 @@
         }
     ],
     "data-hyperparameters":{
-        "N_train": [
+        "N_annotated": [
             500, 
             1000, 
             1500, 

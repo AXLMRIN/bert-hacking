@@ -67,6 +67,7 @@ def single_run(
     logger(f"Starting Loop on task {task_name} {'(TEST_MODE)' if TEST_MODE else ''} and config {loop_config}")
     logger(f"Using BATCH_SIZE: {BATCH_SIZE} - TOTAL_BATCH_SIZE: {TOTAL_BATCH_SIZE} - SEED: {SEED}")
 
+    # retravailler
     loop_ID = {
         **loop_config, 
         "task_name": task_name,
@@ -77,6 +78,7 @@ def single_run(
     # Initialise outputs
     hash_, to_save = create_hash(**loop_ID), None
 
+    # à mettre au niveau de la looop
     if already_done(hash_): 
         logger("Loop was already completed")
     else: 
@@ -97,13 +99,14 @@ def single_run(
                 'max_length' : max_length_capped
             }
 
-            # Prepare dataset: N_train, train_eval_test_ratios
+            # Prepare dataset: N_annotated, train_eval_test_ratios
             ds_loop: Dataset = sample_N_elements(dichotomized_df, SEED = SEED, **loop_config)
             dsd_loop : DatasetDict = split_ds(ds_loop, SEED = SEED, **loop_config)
             dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
 
             
             # Prepare model: model_name
+            # CustomModel(....)
             model = AutoModelForSequenceClassification.from_pretrained(
                 loop_config["model_name"],
                 num_labels = len(label2id),

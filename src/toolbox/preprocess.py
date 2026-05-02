@@ -61,11 +61,11 @@ def cap_max_length(max_n_tokens : int, context_window_rel_to_max : int, model_na
     model_max = AutoConfig.from_pretrained(model_name).max_position_embeddings - 1
     return int(min(requested, model_max))
 
-def sample_N_elements(df: pd.DataFrame, N_train: int, **kwargs)->pd.DataFrame:
+def sample_N_elements(df: pd.DataFrame, N_annotated: int, **kwargs)->pd.DataFrame:
     """
-    Sample N_elements
+    Sample N elements
     """
-    return Dataset.from_pandas(df.sample(N_train, random_state=pick_seed(**kwargs)))
+    return Dataset.from_pandas(df.sample(N_annotated, random_state=pick_seed(**kwargs)))
 
 def split_ds(ds : Dataset, train_eval_test_ratios : list[int], **kwargs)-> DatasetDict:
     """
