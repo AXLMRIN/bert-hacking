@@ -5,3 +5,4 @@ datasets
 pandas
 scikit-learn
 pyyaml
+accelerate>=1.1.0
