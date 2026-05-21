@@ -18,16 +18,16 @@
         ],
         "splits_ratio": [
             [80, 10, 10],
-            [70, 15, 15]
+            [70, 15, 15],
+            [50, 10, 40]
         ]
     },
     "model-hyperparameters":{
         "model_name": [
             "google-bert/bert-base-uncased",
-            "FacebookAI/xlm-roberta-base",
-            "intfloat/multilingual-e5-large",
-            "jhu-clsp/mmBERT-base",
-            "google-bert/bert-base-multilingual-cased"
+            "answerdotai/ModernBERT-base",
+            "microsoft/deberta-v2-xlarge",
+            "FacebookAI/roberta-base"
         ],
         "learning_rate":[
             5e-4,
@@ -38,9 +38,10 @@
         ],
         "weight_decay":[
             0.0,
-            0.01,
             0.001,
+            0.01,
             0.05
-        ]
+        ], 
+        "batch_size":[8, 16, 32]
     }
 }
