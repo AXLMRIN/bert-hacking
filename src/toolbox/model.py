@@ -1,3 +1,5 @@
+import os 
+
 from datasets import DatasetDict, Dataset
 import numpy as np
 import pandas as pd 
@@ -10,6 +12,11 @@ from .utils import get_device, clean
 
 def load_training_arguments(loop_config: LoopConfig) -> TrainingArguments:
     device = get_device()
+
+    # Overwrite output dir
+    if os.path.isdir(loop_config.output_dir):
+        os.system(f'rm -rf {loop_config.output_dir}')
+
     return TrainingArguments(
         bf16=True, # Faster training
         # Hyperparameters
@@ -24,7 +31,6 @@ def load_training_arguments(loop_config: LoopConfig) -> TrainingArguments:
         metric_for_best_model="f1_macro",
         # Pipe
         output_dir = loop_config.output_dir,
-        overwrite_output_dir=True,
         eval_strategy = "epoch",
         logging_strategy = "epoch",
         save_strategy = "epoch",
