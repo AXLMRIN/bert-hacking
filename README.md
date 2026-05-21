@@ -1,5 +1,13 @@
 # BERT Hacking
 
+## Setup
+
+```bash 
+conda create -n bert-hacking python=3.11 -y
+conda activate bert-hacking
+conda install pytorch 'transformers>=4.52.4' datasets pandas scikit-learn pyyaml 'accelerate>=1.1.0' tiktoken sentencepiece protobuf -y
+```
+
 A minimal, configurable pipeline for fine-tuning BERT (and other Hugging Face transformers) on text classification tasks.
 
 This project focuses on **simplicity, reproducibility, and fast experimentation** and is based on Hugging Face classes.

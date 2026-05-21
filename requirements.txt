@@ -5,3 +5,6 @@ datasets
 pandas
 scikit-learn
 pyyaml
+tiktoken
+sentencepiece
+protobuf
