@@ -22,7 +22,6 @@ def loop():
         config_json = json.load(file)
 
     parameter_names, parameters_values = extract_hyperparameters(config_json)
-    print(parameter_names)
     for dataset_info in config_json["datasets"]:
         df = pd.read_csv(dataset_info["filepath-train"])
         df = sanitize_df(df, **dataset_info)

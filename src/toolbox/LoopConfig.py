@@ -19,6 +19,23 @@ class LoopConfig:
         "test_mode": False,
     }
 
+    VARIABLES_TYPE = {
+        "N_annotated": int,
+        "sampling_method": str,
+        "splits_ratio": list[int], # Specific case handled in self.__extract_value
+
+        "model_name": str, 
+        "n_epochs": int,
+        "learning_rate": float, 
+        "weight_decay": float,
+        "batch_size": int, 
+
+        "output_dir": str, 
+        "seed": int,
+        "device_batch_size": int, 
+        "test_mode": bool
+    }
+
     VARIABLES_TO_CHECK_FOR_EQUALITY = [
         "task_name", 
         "dichotomization_label", 
@@ -34,6 +51,15 @@ class LoopConfig:
         "batch_size"
     ]
 
+    def __extract_value(self, param_name:str, **kwargs):
+        if param_name == "splits_ratio":
+            splits_ratio_as_list = list(kwargs.get("splits_ratio", self.LOOP_DEFAULT["splits_ratio"]))
+            return [int(v) for v in splits_ratio_as_list]
+        return self.VARIABLES_TYPE[param_name](
+            kwargs.get(param_name, self.LOOP_DEFAULT[param_name])
+        )
+
+
     def __init__(self, task_name : str, dichotomization_label : str, **kwargs) -> None:
         """
         Takes in any kwargs and return a dictionnary with the expected keys, default 
@@ -42,51 +68,20 @@ class LoopConfig:
         self.task_name = str(task_name)
         self.dichotomization_label = str(dichotomization_label)
 
-        self.N_annotated = int(
-            kwargs.get("N_annotated", self.LOOP_DEFAULT["N_annotated"])
-        )
+        self.N_annotated = self.__extract_value("N_annotated", **kwargs)
+        self.sampling_method = self.__extract_value("sampling_method", **kwargs)
+        self.splits_ratio = self.__extract_value("splits_ratio", **kwargs)
 
-        self.sampling_method = str(
-            kwargs.get("sampling_method", self.LOOP_DEFAULT["sampling_method"])
-        )
+        self.model_name = self.__extract_value("model_name", **kwargs)
+        self.n_epochs = self.__extract_value("n_epochs", **kwargs)
+        self.learning_rate = self.__extract_value("learning_rate", **kwargs)
+        self.weight_decay = self.__extract_value("weight_decay", **kwargs)
+        self.batch_size = self.__extract_value("batch_size", **kwargs)
         
-        self.splits_ratio = [int(v) for v in list(kwargs.get("splits_ratio", self.LOOP_DEFAULT["splits_ratio"]))]
-
-        self.model_name = str(
-            kwargs.get("model_name", self.LOOP_DEFAULT["model_name"])
-        )
-        
-        self.n_epochs = int(
-            kwargs.get("n_epochs", self.LOOP_DEFAULT["n_epochs"])
-        )
-
-        self.learning_rate = float(
-            kwargs.get("learning_rate", self.LOOP_DEFAULT["learning_rate"])
-        )
-        
-        self.weight_decay = float(
-            kwargs.get("weight_decay", self.LOOP_DEFAULT["weight_decay"])
-        )
-
-        self.batch_size = int(
-            kwargs.get("batch_size", self.LOOP_DEFAULT["batch_size"])
-        )
-        
-        self.seed = int(
-            kwargs.get("seed", self.LOOP_DEFAULT["seed"])
-        )
-        
-        self.device_batch_size = int(
-            kwargs.get("device_batch_size", self.LOOP_DEFAULT["device_batch_size"])
-        )
-        
-        self.output_dir = str(
-            kwargs.get("output_dir", self.LOOP_DEFAULT["output_dir"])
-        )
-        
-        self.test_mode = bool(
-            kwargs.get("test_mode", self.LOOP_DEFAULT["test_mode"])
-        )
+        self.output_dir = self.__extract_value("output_dir", **kwargs)
+        self.seed = self.__extract_value("seed", **kwargs)
+        self.device_batch_size = self.__extract_value("device_batch_size", **kwargs)
+        self.test_mode = self.__extract_value("test_mode", **kwargs)
 
     def to_dict(self) -> dict:
         return {key : self.__getattribute__(key) for key in self.VARIABLES_TO_CHECK_FOR_EQUALITY}
@@ -99,3 +94,6 @@ class LoopConfig:
             for key in self.VARIABLES_TO_CHECK_FOR_EQUALITY
         ]
         return np.array(check_list).all()
+
+    def __str__(self) -> bool: 
+        return " | ".join([f'{k}:{v}' for k,v in self.to_dict().items()])

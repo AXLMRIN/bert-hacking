@@ -101,8 +101,14 @@ def predict(model, ds : Dataset, loop_config: LoopConfig, id2label: dict[int:str
     model.eval()
 
     output_df = []
-    for batch in ds.batch(loop_config.batch_size):
-        probs = model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"]).logits.detach().cpu().softmax(1).numpy()
+    for batch in ds.batch(loop_config.device_batch_size):
+        probs = (
+            model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"])
+            .logits
+            .detach().cpu()
+            .softmax(1)
+            .numpy()
+        )
         y_pred = np.argmax(probs, axis = 1).reshape(-1)
 
         output_df += [

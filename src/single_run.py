@@ -50,6 +50,7 @@ def single_run(
     hash_, logs_to_save = create_hash(loop_config), None
     tokenizer, ds_loop, dsd_loop, ds_pred, predictions, model = (None,) * 6
     try: 
+        # Dichotomization: dichotomization_label
         dichotomized_df, label2id, id2label = dichotomize(df, loop_config)
         dichotomized_df_prediction, _, _ = dichotomize(df_prediction, loop_config)
         
@@ -65,7 +66,7 @@ def single_run(
             'max_length' : max_length_capped
         }
 
-        # Prepare dataset: N_annotated, splits_ratio
+        # Prepare dataset: N_annotated, splits_ratio, seed
         ds_loop: Dataset = sample_N_elements(dichotomized_df, loop_config)#FIXME Only one sampling method implemented: random
         dsd_loop : DatasetDict = split_ds(ds_loop, loop_config)
         dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
@@ -78,20 +79,19 @@ def single_run(
             num_labels = len(label2id),
             id2label   = id2label,
             label2id   = label2id,
-            #TODO check for dropout
-            # hidden_dropout_prob = XXX
         )
 
-        # Prepare trainer: learning_rate, weight_decay, warmup_ratio, dropout
+        # Prepare trainer: n_epochs, learning_rate, weight_decay, batch_size, device_batch_size, output_dir, seed
         training_args = load_training_arguments(loop_config)
 
         logger("Everything loaded — Start training")
 
+        # Launch training: test_mode
         tstart = time()
         best_model_checkpoint = train_model(model, training_args,dsd_loop,loop_config)
         logger(f"Training done in {time() - tstart:.0f}s - best model checkpoint: {best_model_checkpoint}")
         
-        # Reload model from checkpoint
+        # Reload model from checkpoint: test_mode, device_batch_size
         model = AutoModelForSequenceClassification.from_pretrained(best_model_checkpoint)
         predictions : pd.DataFrame = predict(model, dsd_loop["test"], loop_config, id2label=id2label)
         score_on_test = f1_score(y_true = predictions["GS-LABEL"], y_pred = predictions["PRED-LABEL"], average="macro",zero_division=np.nan)
@@ -119,7 +119,7 @@ def single_run(
             
     except Exception as e: 
         logger("Loop failed")
-        logger(f"Error during loop {hash_}\n\n{e}\n\n", type="ERRORS")
+        logger(f"Error during loop {hash_}\n{loop_config}\n{e}\n\n", type="ERRORS")
     finally: 
             del tokenizer, ds_loop, dsd_loop, ds_pred, predictions, model
             clean() 
