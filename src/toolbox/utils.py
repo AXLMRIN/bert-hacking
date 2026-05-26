@@ -4,6 +4,7 @@ from gc import collect as gc_collect
 from time import time
 
 import numpy as np
+import pandas as pd
 from transformers import AutoTokenizer
 from torch import device
 from torch.cuda import is_available as cuda_available
@@ -76,3 +77,33 @@ def to_saving_logs(hash_: str, to_save: dict|None):
     
     with open("./results/saving_logs.json", "w") as file:
         json.dump(saving_logs, file, ensure_ascii=True, indent=4)
+
+def aggregate_predictions(
+    df : pd.DataFrame, 
+    label2id: dict, 
+    id2label:dict, 
+    threshold : float|None = None, 
+    at_least : int|None = None 
+) -> str:
+    """"""
+    df = df.copy().reset_index()
+    df = df[["ID", "GS-LABEL", "PRED-LABEL"]].set_index("ID").replace(label2id).reset_index()
+    if isinstance(threshold, float): 
+        df_aggregated = (
+            df
+            .groupby("ID")
+            .agg("mean")
+        )
+        df_aggregated = df_aggregated >= threshold
+    elif isinstance(at_least, int):
+        df_aggregated = (
+            df
+            .groupby("ID")
+            .agg("sum")
+        )
+        df_aggregated = df_aggregated >= at_least
+        print(df_aggregated)
+    else:
+        raise ValueError(f"criterion not provided. Received threshold: {threshold}; at_least: {at_least}")
+    df_aggregated = df_aggregated.astype(int).replace(id2label).reset_index()
+    return df_aggregated.set_index("ID")

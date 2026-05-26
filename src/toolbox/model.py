@@ -116,13 +116,29 @@ def predict(model, ds : Dataset, loop_config: LoopConfig, id2label: dict[int:str
             .numpy()
         )
         y_pred = np.argmax(probs, axis = 1).reshape(-1)
-
-        output_df += [
-            {
-                "ID": id,
-                "GS-LABEL": label,
-                "PRED-LABEL": id2label[int(pred)],
-            }
-            for id, label, pred in zip(batch["ID"], batch["LABEL"], y_pred)
-        ]
+        
+        if "ID_CHUNK" in batch:
+            output_df += [
+                {
+                    "ID": id,
+                    "ID_CHUNK": id_chunk,
+                    "GS-LABEL": label,
+                    "PRED-LABEL": id2label[int(pred)],
+                }
+                for id, id_chunk, label, pred in zip(
+                    batch["ID"], 
+                    batch["ID_CHUNK"], 
+                    batch["LABEL"], 
+                    y_pred
+                )
+            ]
+        else:
+            output_df += [
+                {
+                    "ID": id,
+                    "GS-LABEL": label,
+                    "PRED-LABEL": id2label[int(pred)],
+                }
+                for id, label, pred in zip(batch["ID"], batch["LABEL"], y_pred)
+            ]
     return pd.DataFrame(output_df).set_index("ID")
