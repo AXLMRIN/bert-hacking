@@ -5,7 +5,7 @@ from transformers import AutoConfig
 
 from . import LoopConfig
 
-def sanitize_df(df: pd.DataFrame, text_col: str, label_col:str, id_col:str, **kwargs)->pd.DataFrame:
+def sanitize_df(df: pd.DataFrame, text_col: str, label_col:str, id_col:str, id_chunk_col: str|None = None, **kwargs)->pd.DataFrame:
     if not np.isin([text_col, label_col, id_col], df.columns).all():
         raise ValueError(
             f"The columns you provided cannot be found in the dataframe. "
@@ -17,19 +17,22 @@ def sanitize_df(df: pd.DataFrame, text_col: str, label_col:str, id_col:str, **kw
         label_col: "LABEL",
         id_col: "ID",
     })
-    if np.array([
-        df["ID"].isna().sum() > 0,
-        df["TEXT"].isna().sum() > 0,
-        df["LABEL"].isna().sum() > 0,
-    ]).any():
+    main_columns = ["TEXT","LABEL", "ID"]
+    column_for_index = "ID"
+    if id_chunk_col: 
+        df = df.rename(columns={id_chunk_col: "ID_CHUNK"})
+        main_columns += ["ID_CHUNK"]
+        column_for_index = "ID_CHUNK"
+
+    if np.array([df[col].isna().sum() > 0 for col in main_columns]).any():
         raise ValueError(
             f"Missing values: "
             f"\t ID: {df['ID'].isna().sum()}"
             f"\t TEXT: {df['TEXT'].isna().sum()}"
             f"\t LABEL: {df['LABEL'].isna().sum()}"
         )
-    if df["ID"].is_unique:
-        return df[["ID", "TEXT", "LABEL"]].set_index("ID")
+    if df[column_for_index].is_unique:
+        return df[main_columns].set_index(column_for_index)
     else:
         raise ValueError("ID column contains non-unique values.")
 
@@ -61,18 +64,18 @@ def get_max_tokens(texts: pd.Series, tokenizer, top_n : int = 15)->int:
     )
     return max_tokenizing_len
 
-def cap_max_length(max_n_tokens : int, context_window_rel_to_max : int, model_name : str, **kwargs) -> int:
-    requested = context_window_rel_to_max * max_n_tokens / 100
-    model_max = AutoConfig.from_pretrained(model_name).max_position_embeddings - 1
-    return int(min(requested, model_max))
+def cap_max_length(max_n_tokens : int, loop_config: LoopConfig) -> int:
+    model_max = AutoConfig.from_pretrained(loop_config.model_name).max_position_embeddings - 1
+    return int(min(max_n_tokens, model_max))
 
 def sample_N_elements(df: pd.DataFrame, loop_config: LoopConfig)->pd.DataFrame:
     """
     Sample N elements
     """
-    return Dataset.from_pandas(df.sample(loop_config.N_annotated, random_state=loop_config.seed))
+    id_samples = pd.Series(df["ID"].unique()).sample(loop_config.N_annotated, random_state=loop_config.seed)
+    return df.loc[np.isin(df["ID"], id_samples)]
 
-def split_ds(ds : Dataset, loop_config: LoopConfig)-> DatasetDict:
+def split_ds(df : pd.DataFrame, loop_config: LoopConfig)-> DatasetDict:
     """
     takes the splits_ratio (ex: [80, 10, 10]) and return a DatasetDict
     """
@@ -87,19 +90,17 @@ def split_ds(ds : Dataset, loop_config: LoopConfig)-> DatasetDict:
             f"The sum of splits_ratio shoul be 100. Found: "
             f"{splits_ratio}"
         )
-    out_dsd = ds.train_test_split(
-        train_size= splits_ratio[0] / 100, # Train proportion 
-        shuffle=True,
-        seed=loop_config.seed
-    )
-    resplit_ratio = 100 * splits_ratio[1] / (splits_ratio[1] + splits_ratio[2])
-    temp_dsd = out_dsd["test"].train_test_split(
-        train_size = resplit_ratio / 100, 
-        shuffle=True, 
-        seed=loop_config.seed
-    )
-    out_dsd["train-eval"] = temp_dsd["train"]
-    out_dsd["test"] = temp_dsd["test"]
+    ids = pd.Series(df["ID"].unique()).sample(frac=1, random_state=loop_config.seed)
+    N_ids = len(ids)
+    ids_train = ids.head(splits_ratio[0] * N_ids // 100)
+    ids_test = ids.tail(splits_ratio[2] * N_ids // 100)
+    ids_train_eval = ids.drop(index=[*ids_train.index.to_list(), *ids_test.index.to_list()])
+
+    out_dsd = DatasetDict({
+        "train": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_train)]),
+        "train-eval": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_train_eval)]),
+        "test": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_test)]),
+    })
     return out_dsd
 
 def tokenize_dataset_dict(

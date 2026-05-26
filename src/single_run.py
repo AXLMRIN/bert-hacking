@@ -22,8 +22,13 @@ from toolbox import (
     train_model,
     predict,
     clean, 
-    sanitize_df
+    sanitize_df,
+    cap_max_length,
+    aggregate_predictions
 )
+
+AT_LEAST = 1
+THRESHOLD = None
 
 def single_run(
         df : pd.DataFrame,
@@ -58,8 +63,7 @@ def single_run(
         tokenizer = load_tokenizer(loop_config)
 
         max_n_tokens = get_max_tokens(dichotomized_df["TEXT"], tokenizer)
-        # ⚠️ How do we deal with entries longer than the model's context window
-        max_length_capped = 100 #FIXME This is a debug feature
+        max_length_capped = cap_max_length(max_n_tokens, loop_config)
         tokenization_parameters = {
             'padding' : 'max_length',
             'truncation' : True,
@@ -67,13 +71,12 @@ def single_run(
         }
 
         # Prepare dataset: N_annotated, splits_ratio, seed
-        ds_loop: Dataset = sample_N_elements(dichotomized_df, loop_config)#FIXME Only one sampling method implemented: random
+        ds_loop: pd.DataFrame = sample_N_elements(dichotomized_df, loop_config)#FIXME Only one sampling method implemented: random
+        logger(f"Sample {ds_loop['ID'].nunique()} documents; corresponds to {len(ds_loop)} rows")
         dsd_loop : DatasetDict = split_ds(ds_loop, loop_config)
         dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
-
         
         # Prepare model: model_name
-        # CustomModel(....)
         model = AutoModelForSequenceClassification.from_pretrained(
             loop_config.model_name,
             num_labels = len(label2id),
@@ -94,7 +97,13 @@ def single_run(
         # Reload model from checkpoint: test_mode, device_batch_size
         model = AutoModelForSequenceClassification.from_pretrained(best_model_checkpoint)
         predictions : pd.DataFrame = predict(model, dsd_loop["test"], loop_config, id2label=id2label)
-        score_on_test = f1_score(y_true = predictions["GS-LABEL"], y_pred = predictions["PRED-LABEL"], average="macro",zero_division=np.nan)
+        predictions_aggregated : pd.DataFrame = aggregate_predictions(predictions, label2id, id2label, THRESHOLD, AT_LEAST)
+        score_on_test = f1_score(
+            y_true = predictions_aggregated["GS-LABEL"], 
+            y_pred = predictions_aggregated["PRED-LABEL"], 
+            average="macro",
+            zero_division=np.nan
+        )
         logger(f"Evaluate best model. Score: {score_on_test}")
 
         # Predict on full data
@@ -114,6 +123,12 @@ def single_run(
                 "score_on_test": score_on_test,
                 "prediction-csv": f"./predictions_save/{hash_}.csv"
             }                
+            if "ID_CHUNK" in predictions.columns:
+                (
+                    aggregate_predictions(predictions, label2id, id2label, THRESHOLD, AT_LEAST)
+                    .to_csv(f"./predictions_save/{hash_}-aggregated.csv")
+                )
+                logs_to_save["prediction-aggregated-csv"] = f"./predictions_save/{hash_}-aggregated.csv"
 
             logger(f"Information saved with hash {hash_}")
             
