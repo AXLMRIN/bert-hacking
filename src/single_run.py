@@ -6,7 +6,12 @@ from datasets import Dataset, DatasetDict
 import numpy as np 
 import pandas as pd 
 from sklearn.metrics import f1_score
-from transformers import AutoModelForSequenceClassification
+from transformers import (
+    AutoModelForSequenceClassification, 
+    BigBirdForSequenceClassification, 
+    LongformerForSequenceClassification, 
+    AutoConfig
+)
 
 from toolbox import (
     CustomLogger, 
@@ -67,8 +72,15 @@ def single_run(
         tokenization_parameters = {
             'padding' : 'max_length',
             'truncation' : True,
-            'max_length' : max_length_capped
+            'max_length' : max_n_tokens # FIXME This is a debug feature
         }
+
+        if max_n_tokens < AutoConfig.from_pretrained(loop_config.model_name).max_position_embeddings : 
+            logger(f"Using classic transformer framework (max_n_tokens : {max_n_tokens})")
+            model_framework = AutoModelForSequenceClassification
+        else :
+            logger(f"Using Longformer framework (max_n_tokens: {max_n_tokens})")
+            model_framework = LongformerForSequenceClassification
 
         # Prepare dataset: N_annotated, splits_ratio, seed
         ds_loop, effective_distrib = sample_N_elements(dichotomized_df, label2id, loop_config)
@@ -96,7 +108,7 @@ def single_run(
         logger(f"Training done in {time() - tstart:.0f}s - best model checkpoint: {best_model_checkpoint}")
         
         # Reload model from checkpoint: test_mode, device_batch_size
-        model = AutoModelForSequenceClassification.from_pretrained(best_model_checkpoint)
+        model = model_framework.from_pretrained(best_model_checkpoint)
         predictions : pd.DataFrame = predict(model, dsd_loop["test"], loop_config, id2label=id2label)
         predictions_aggregated : pd.DataFrame = aggregate_predictions(predictions, label2id, id2label, THRESHOLD, AT_LEAST)
         score_on_test = f1_score(
