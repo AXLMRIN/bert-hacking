@@ -49,9 +49,5 @@ def loop():
                     to_saving_logs(hash_, to_save)
                 logger("END LOOP" + "#" * 92)
 
-                break
-            break
-        break 
-
 if __name__ == "__main__":
     loop()
