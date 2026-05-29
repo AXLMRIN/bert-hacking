@@ -46,8 +46,6 @@ def loop():
                     logger("Loop already done, skipping")
                 else:   
                     hash_, to_save = single_run(df, df_prediction, loop_config)
-                    print(f"HASH: {hash_}")
-                    print(to_save)
                     to_saving_logs(hash_, to_save)
                 logger("END LOOP" + "#" * 92)
 
