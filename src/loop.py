@@ -13,7 +13,7 @@ from toolbox import (
 )
 from single_run import single_run
 
-TEST_MODE = True
+TEST_MODE = False
 DEVICE_BATCH_SIZE = 4
 logger = CustomLogger("./custom_logs")
 
