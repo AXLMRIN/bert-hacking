@@ -102,7 +102,6 @@ def aggregate_predictions(
             .agg("sum")
         )
         df_aggregated = df_aggregated >= at_least
-        print(df_aggregated)
     else:
         raise ValueError(f"criterion not provided. Received threshold: {threshold}; at_least: {at_least}")
     df_aggregated = df_aggregated.astype(int).replace(id2label).reset_index()
