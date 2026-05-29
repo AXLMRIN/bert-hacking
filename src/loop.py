@@ -19,7 +19,7 @@ DEVICE_BATCH_SIZE_FOR_PREDICTION = 16
 logger = CustomLogger("./custom_logs")
 
 def loop():
-    with open("./config_files/config-loop.json") as file:
+    with open("./config_files/config-loop-chunking-assessment.json") as file:
         config_json = json.load(file)
 
     parameter_names, parameters_values = extract_hyperparameters(config_json)
