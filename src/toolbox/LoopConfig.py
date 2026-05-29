@@ -16,6 +16,7 @@ class LoopConfig:
         "output_dir": "./models/current",
         "seed": 42,
         "device_batch_size": 4,
+        "device_batch_size_for_prediction":-1, # Specific case handled in self.__extract_valuie
         "test_mode": False,
     }
 
@@ -33,6 +34,7 @@ class LoopConfig:
         "output_dir": str, 
         "seed": int,
         "device_batch_size": int, 
+        "device_batch_size_for_prediction": int,
         "test_mode": bool
     }
 
@@ -71,6 +73,17 @@ class LoopConfig:
             except:
                 raise ValueError((f"Error parsing sampling method format, "
                     f"should be a dictionary but received: {kwargs.get('sampling_method', None)}"))
+        if param_name == "device_batch_size_for_prediction":
+            try:
+                # Default value is device_batch_size
+                requested = self.VARIABLES_TYPE[param_name](
+                    kwargs.get(param_name, self.LOOP_DEFAULT[param_name])
+                )
+                default_device_batch_size = self.__extract_value("device_batch_size")
+                return max(requested, default_device_batch_size)
+            except:
+                raise ValueError((f"Error parsing {param_name}, should be a "
+                f"{self.VARIABLES_TYPE[param_name]} but received {kwargs.get(param_name, None)}"))
         try: 
             out = self.VARIABLES_TYPE[param_name](
                 kwargs.get(param_name, self.LOOP_DEFAULT[param_name])
@@ -102,6 +115,7 @@ class LoopConfig:
         self.output_dir = self.__extract_value("output_dir", **kwargs)
         self.seed = self.__extract_value("seed", **kwargs)
         self.device_batch_size = self.__extract_value("device_batch_size", **kwargs)
+        self.device_batch_size_for_prediction = self.__extract_value("device_batch_size_for_prediction", **kwargs)
         self.test_mode = self.__extract_value("test_mode", **kwargs)
 
     def to_dict(self) -> dict:

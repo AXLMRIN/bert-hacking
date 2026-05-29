@@ -108,7 +108,7 @@ def predict(model, ds : Dataset, loop_config: LoopConfig, id2label: dict[int:str
     model.eval()
 
     output_df = []
-    for batch in tqdm(ds.batch(loop_config.device_batch_size), desc="Prediction"):
+    for batch in tqdm(ds.batch(loop_config.device_batch_size_for_prediction), desc="Prediction"):
         probs = (
             model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"])
             .logits

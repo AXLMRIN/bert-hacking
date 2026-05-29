@@ -15,6 +15,7 @@ from single_run import single_run
 
 TEST_MODE = False
 DEVICE_BATCH_SIZE = 4
+DEVICE_BATCH_SIZE_FOR_PREDICTION = 16
 logger = CustomLogger("./custom_logs")
 
 def loop():
@@ -38,6 +39,7 @@ def loop():
                     **{n: v for n,v in zip(parameter_names,local_config)},
                     test_mode = TEST_MODE, 
                     device_batch_size = DEVICE_BATCH_SIZE,
+                    device_batch_size_for_prediction = DEVICE_BATCH_SIZE_FOR_PREDICTION,
                 )
                 logger.start_loop_log(loop_config)
                 if already_done(loop_config):
