@@ -24,11 +24,11 @@ def loop():
 
     parameter_names, parameters_values = extract_hyperparameters(config_json)
     for dataset_info in config_json["datasets"]:
-        df = pd.read_csv(dataset_info["filepath-train"], sep=dataset_info.get("csv-sep", None))
+        df = pd.read_csv(dataset_info["filepath-train"], sep=dataset_info.get("csv-sep", ","))
         df = sanitize_df(df, **dataset_info)
         labels = list(df["LABEL"].unique())
 
-        df_prediction = pd.read_csv(dataset_info["filepath-predict"], sep=dataset_info.get("csv-sep", None))
+        df_prediction = pd.read_csv(dataset_info["filepath-predict"], sep=dataset_info.get("csv-sep", ","))
         df_prediction = sanitize_df(df_prediction, **dataset_info)
         for label in labels: 
             task_name = f"{dataset_info['name']}-{label}"
