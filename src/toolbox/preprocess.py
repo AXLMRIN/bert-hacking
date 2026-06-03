@@ -130,7 +130,7 @@ def sample_N_documents(df: pd.DataFrame, label2id : dict, loop_config: LoopConfi
     stratification_col = loop_config.sampling_method["stratified"]
     balance = loop_config.sampling_method["balance"]
     cache_file = (f"{loop_config.task_name}-{loop_config.N_annotated}-"
-        f"{stratification_col}-{balance}.csv")
+        f"{stratification_col}-{balance}-{loop_config.seed}.csv")
     if cache_file in os.listdir("./.cache"):
         out_df = pd.read_csv(f"./.cache/{cache_file}")
     else: 
