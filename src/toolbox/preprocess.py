@@ -165,7 +165,7 @@ def split_ds(df : pd.DataFrame, loop_config: LoopConfig)-> DatasetDict:
 
     out_dsd = DatasetDict({
         "train": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_train)]),
-        "train-eval": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_train_eval)]),
+        "eval": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_train_eval)]),
         "test": Dataset.from_pandas(df.loc[np.isin(df["ID"], ids_test)]),
     })
     return out_dsd

@@ -78,7 +78,7 @@ def train_model(
             model, 
             args = training_args,
             train_dataset=dsd["train"],
-            eval_dataset=dsd["train-eval"], 
+            eval_dataset=dsd["eval"], 
             compute_metrics = compute_metrics_multiclass,
         )
         print(f"Begin training on {device}")
