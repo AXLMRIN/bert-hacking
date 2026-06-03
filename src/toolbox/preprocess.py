@@ -81,7 +81,7 @@ def cap_max_length(max_n_tokens : int, loop_config: LoopConfig) -> int:
     model_max = AutoConfig.from_pretrained(loop_config.model_name).max_position_embeddings - 1
     return int(min(max_n_tokens, model_max))
 
-def _sample_N_elements(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig)->pd.DataFrame:
+def _sample_N_documents(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig)->pd.DataFrame:
     """
     Sample N elements
     """
@@ -122,7 +122,7 @@ def _sample_N_elements(df: pd.DataFrame, label2id : dict, loop_config: LoopConfi
         id_samples += batch_indexes
     return df.loc[np.isin(df["ID"], id_samples)]
 
-def sample_N_elements(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig)->tuple[pd.DataFrame, dict]:
+def sample_N_documents(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig)->tuple[pd.DataFrame, dict]:
     """
     Sample N elements with cache 
     """
@@ -134,7 +134,7 @@ def sample_N_elements(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig
         out_df = pd.read_csv(f"./.cache/{cache_file}")
     else: 
         print("Start sampling, might take a while") #TODELETE
-        out_df = _sample_N_elements(df, label2id, loop_config)
+        out_df = _sample_N_documents(df, label2id, loop_config)
         print("Done sampling") #TODELETE
         out_df.to_csv(f"./.cache/{cache_file}", index=False)
     df_for_effective_distrib_calc = out_df.groupby("ID").sample(n=1,random_state=0)

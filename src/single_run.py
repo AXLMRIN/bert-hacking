@@ -15,7 +15,7 @@ from toolbox import (
     dichotomize,
     load_tokenizer,
     get_max_tokens, 
-    sample_N_elements,
+    sample_N_documents,
     split_ds,
     tokenize_dataset_dict,
     load_training_arguments,
@@ -73,7 +73,7 @@ def single_run(
         }
 
         # Prepare dataset: N_annotated, splits_ratio, seed
-        ds_loop, effective_distrib = sample_N_elements(dichotomized_df, label2id, loop_config)
+        ds_loop, effective_distrib = sample_N_documents(dichotomized_df, label2id, loop_config)
         logger(f"Sample {ds_loop['ID'].nunique()} documents; corresponds to {len(ds_loop)} rows")
         logger(f"Effective distribution: {effective_distrib} — requested : {loop_config.sampling_method}")
         dsd_loop : DatasetDict = split_ds(ds_loop, loop_config)
