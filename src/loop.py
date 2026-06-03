@@ -13,12 +13,13 @@ from toolbox import (
 )
 from single_run import single_run
 
-TEST_MODE = True
+TEST_MODE = False
 DEVICE_BATCH_SIZE = 4
+DEVICE_BATCH_SIZE_FOR_PREDICTION = 16
 logger = CustomLogger("./custom_logs")
 
 def loop():
-    with open("./config_files/config-loop.json") as file:
+    with open("./config_files/config-loop-chunking-assessment.json") as file:
         config_json = json.load(file)
 
     parameter_names, parameters_values = extract_hyperparameters(config_json)
@@ -38,20 +39,15 @@ def loop():
                     **{n: v for n,v in zip(parameter_names,local_config)},
                     test_mode = TEST_MODE, 
                     device_batch_size = DEVICE_BATCH_SIZE,
+                    device_batch_size_for_prediction = DEVICE_BATCH_SIZE_FOR_PREDICTION,
                 )
                 logger.start_loop_log(loop_config)
                 if already_done(loop_config):
                     logger("Loop already done, skipping")
                 else:   
                     hash_, to_save = single_run(df, df_prediction, loop_config)
-                    print(f"HASH: {hash_}")
-                    print(to_save)
                     to_saving_logs(hash_, to_save)
                 logger("END LOOP" + "#" * 92)
-
-                break
-            break
-        break 
 
 if __name__ == "__main__":
     loop()

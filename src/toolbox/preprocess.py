@@ -133,7 +133,9 @@ def sample_N_elements(df: pd.DataFrame, label2id : dict, loop_config: LoopConfig
     if cache_file in os.listdir("./.cache"):
         out_df = pd.read_csv(f"./.cache/{cache_file}")
     else: 
+        print("Start sampling, might take a while") #TODELETE
         out_df = _sample_N_elements(df, label2id, loop_config)
+        print("Done sampling") #TODELETE
         out_df.to_csv(f"./.cache/{cache_file}", index=False)
     df_for_effective_distrib_calc = out_df.groupby("ID").sample(n=1,random_state=0)
     label, count = np.unique_counts(df_for_effective_distrib_calc['LABEL'])

@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.metrics import f1_score
 from torch import Tensor
 from transformers import TrainingArguments, Trainer, EvalPrediction
+from tqdm import tqdm
 
 from . import LoopConfig
 from .utils import get_device, clean
@@ -107,7 +108,7 @@ def predict(model, ds : Dataset, loop_config: LoopConfig, id2label: dict[int:str
     model.eval()
 
     output_df = []
-    for batch in ds.batch(loop_config.device_batch_size):
+    for batch in tqdm(ds.batch(loop_config.device_batch_size_for_prediction), desc="Prediction"):
         probs = (
             model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"])
             .logits
