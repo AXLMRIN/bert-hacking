@@ -13,18 +13,14 @@ from toolbox import (
     LoopConfig,
     create_hash,
     dichotomize,
-    load_tokenizer,
-    get_max_tokens, 
     sample_N_documents,
-    split_ds,
-    tokenize_dataset_dict,
+    tokenize_chunk_pad_split,
     load_training_arguments,
     train_model,
     predict,
     clean, 
     sanitize_df,
-    cap_max_length,
-    aggregate_predictions
+    aggregate_predictions, 
 )
 
 OVERLAP = 50
@@ -64,24 +60,13 @@ def single_run(
         loop_config.set_label_id_mapper(label2id, id2label)
         dichotomized_df_prediction, _, _ = dichotomize(df_prediction, loop_config)
         
-        # Prepare tokenizer: model_name
-        tokenizer = load_tokenizer(loop_config)
-
-        max_n_tokens = get_max_tokens(dichotomized_df["TEXT"], tokenizer)
-        max_length_capped = cap_max_length(max_n_tokens, loop_config)
-        tokenization_parameters = {
-            'padding' : 'max_length',
-            'truncation' : True,
-            'max_length' : max_length_capped 
-        }
-
         # Prepare dataset: N_annotated, splits_ratio, seed
-        ds_loop, effective_distrib = sample_N_documents(dichotomized_df, label2id, loop_config)
-        logger(f"Sample {ds_loop['ID'].nunique()} documents; corresponds to {len(ds_loop)} rows")
+        # N_documents is a dictionary of dictionaries
+        df_sample, effective_distrib = sample_N_documents(dichotomized_df, loop_config)
+        logger(f"Sample {len(df_sample)} rows")
         logger(f"Effective distribution: {effective_distrib} — requested : {loop_config.sampling_method}")
-        dsd_loop : DatasetDict = split_ds(ds_loop, loop_config)
-        dsd_loop = dsd_loop.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
-        
+        # Prepare tokenize texts: model_name
+        dsd_loop, max_length_capped = tokenize_chunk_pad_split(df_sample, "training", loop_config)
         run_timer["preprocess_data"] = time() - run_timer["preprocess_data"] 
         
         # Prepare model: model_name
@@ -120,9 +105,7 @@ def single_run(
 
         # Predict on full data
         run_timer["prediction"] = time() 
-        ds_pred = Dataset.from_pandas(dichotomized_df_prediction)
-        ds_pred = ds_pred.map(lambda row: tokenize_dataset_dict(row,label2id, tokenizer,tokenization_parameters))
-
+        ds_pred, _ = tokenize_chunk_pad_split(dichotomized_df_prediction, "inference", loop_config, force_max_length_capped=max_length_capped)
         logger("Start Inference")
         tstart = time()
         predictions : pd.DataFrame = predict(model, ds_pred, loop_config)
