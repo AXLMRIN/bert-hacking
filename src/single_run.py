@@ -107,7 +107,7 @@ def single_run(
         # Reload model from checkpoint: test_mode, device_batch_size
         run_timer["evaluation"] = time()
         model = AutoModelForSequenceClassification.from_pretrained(best_model_checkpoint)
-        predictions_on_test : pd.DataFrame = predict(model, dsd_loop["test"], loop_config, id2label=id2label)
+        predictions_on_test : pd.DataFrame = predict(model, dsd_loop["test"], loop_config)
         predictions_on_test_aggregated : pd.DataFrame = aggregate_predictions(predictions_on_test, loop_config)
         score_on_test = f1_score(
             y_true = predictions_on_test_aggregated["GS-LABEL"], 
@@ -125,7 +125,7 @@ def single_run(
 
         logger("Start Inference")
         tstart = time()
-        predictions : pd.DataFrame = predict(model, ds_pred, loop_config, id2label=id2label)
+        predictions : pd.DataFrame = predict(model, ds_pred, loop_config)
         logger(f"Inference done in {time() - tstart:.0f} s")
         run_timer["prediction"] = time() - run_timer["prediction"]
 
