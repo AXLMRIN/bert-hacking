@@ -14,7 +14,8 @@ from toolbox import (
     create_hash,
     dichotomize,
     sample_N_documents,
-    tokenize_chunk_pad_split,
+    tokenize_chunk_pad,
+    split_ds,
     load_training_arguments,
     train_model,
     predict,
@@ -66,8 +67,11 @@ def single_run(
         logger(f"Sample {len(df_sample)} rows")
         logger(f"Effective distribution: {effective_distrib} — requested : {loop_config.sampling_method}")
         # Prepare tokenize texts: model_name
-        dsd_loop, max_length_capped = tokenize_chunk_pad_split(df_sample, "training", loop_config)
-        del df_sample
+        N_documents, max_length_capped = tokenize_chunk_pad(df_sample, "training", loop_config)
+        dsd_loop = split_ds(N_documents, loop_config)
+        del df_sample, N_documents
+        logger(dsd_loop)
+
         run_timer["preprocess_data"] = time() - run_timer["preprocess_data"] 
         
         # Prepare model: model_name
@@ -106,7 +110,9 @@ def single_run(
 
         # Predict on full data
         run_timer["prediction"] = time() 
-        ds_pred, _ = tokenize_chunk_pad_split(dichotomized_df_prediction, "inference", loop_config, force_max_length_capped=max_length_capped)
+        N_documents, _ = tokenize_chunk_pad(dichotomized_df_prediction, "inference", loop_config, force_max_length_capped=max_length_capped)
+        ds_pred = Dataset.from_list([d for d in N_documents.values()])
+        del N_documents
         logger("Start Inference")
         tstart = time()
         predictions : pd.DataFrame = predict(model, ds_pred, loop_config)

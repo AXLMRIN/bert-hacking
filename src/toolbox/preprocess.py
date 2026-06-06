@@ -263,7 +263,7 @@ def format_labels(N_documents: dict[str:dict], loop_config: LoopConfig) -> dict[
         N_documents[id_doc]["labels"] = loop_config.label2id[N_documents[id_doc]["LABEL"]]
     return N_documents
 
-def tokenize_chunk_pad_split(
+def tokenize_chunk_pad(
     df: pd.DataFrame, 
     df_name: str, 
     loop_config: LoopConfig, 
@@ -289,5 +289,4 @@ def tokenize_chunk_pad_split(
         N_documents = chunk_texts(N_documents, max_length_capped, loop_config.OVERLAP)
     N_documents = pad_texts(N_documents,max_length_capped,tokenizer.pad_token_id)
 
-    dsd_loop : DatasetDict = split_ds(N_documents, loop_config)
-    return dsd_loop, max_length_capped
+    return N_documents, max_length_capped
