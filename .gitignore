@@ -8,3 +8,4 @@ predictions_save/
 **/__*
 *.html
 .cache
+.env

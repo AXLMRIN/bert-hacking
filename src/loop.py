@@ -9,7 +9,8 @@ from toolbox import (
     extract_hyperparameters, 
     sanitize_df, 
     to_saving_logs, 
-    already_done
+    already_done,
+    send_notification
 )
 from single_run import single_run
 
@@ -49,4 +50,20 @@ def loop():
                 logger("END LOOP" + "#" * 92)
 
 if __name__ == "__main__":
-    loop()
+    try: loop()
+    except Exception as e:
+        reason = str(e) 
+    finally: 
+        with open("./results/saving_logs.json") as file:
+            report = [{
+                k:v for k, v in r.items() 
+                if k in ["dataset_name", "dichotomization_label", "model_name"]
+                }
+                for r in json.load(file).values()
+            ]
+            n_success = len(report)
+            report = pd.DataFrame(report).groupby(["dataset_name", "dichotomization_label", "model_name"]).size()
+
+        message = f"N success: {n_success}\nReport:\n{report}"
+        send_notification(message)
+

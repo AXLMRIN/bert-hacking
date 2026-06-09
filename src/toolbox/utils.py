@@ -12,6 +12,10 @@ from torch.cuda import is_available as cuda_available
 from torch.cuda import empty_cache, synchronize, ipc_collect
 from torch.backends.mps import is_available as mps_available
 
+from email.message import EmailMessage
+import ssl
+import smtplib
+
 from . import LoopConfig
 
 def extract_hyperparameters(config_json: dict):
@@ -116,3 +120,29 @@ def retrieve_trainer_logs(directory: str) -> dict:
     with open(f"{directory}/{last_checkpoint}/trainer_state.json", "r") as file:
         content = json.load(file)
     return content.get("log_history", "failed retrieving the logs")
+
+def send_notification(message : str = '') : 
+    """send an email when finished"""
+    try: 
+        from dotenv import load_dotenv
+        load_dotenv()
+    except: pass 
+    EMAIL_FROM = os.environ.get("EMAIL_FROM")
+    EMAIL_TO = os.environ.get("EMAIL_TO")
+    EMAIL_FROM_PWD= os.environ.get("EMAIL_FROM_PWD")
+
+    if not(EMAIL_FROM and EMAIL_TO and EMAIL_FROM_PWD): print("Mail not sent"); return 
+
+    subj = "Onyxia run — stopped"
+    body = (f"Loop Stopped\n{message}")
+    em = EmailMessage()
+    em["From"] = EMAIL_FROM
+    em["To"] = EMAIL_TO
+    em["Subject"] = subj
+    em.set_content(body)
+
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp : 
+        print(smtp.login(EMAIL_FROM,EMAIL_FROM_PWD))
+        print(smtp.sendmail(EMAIL_FROM,EMAIL_TO, em.as_string()))
