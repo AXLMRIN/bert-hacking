@@ -269,7 +269,6 @@ def tokenize_chunk_pad(
     df_sample: pd.DataFrame, 
     df_name: str, 
     loop_config: LoopConfig, 
-    force_max_length_capped: int|None=None
 ) -> tuple[DatasetDict, int]:
     """"""
     tokenizer = load_tokenizer(loop_config)
@@ -282,11 +281,7 @@ def tokenize_chunk_pad(
     
     max_n_tokens = get_max_tokens(N_documents)
     max_length_capped = cap_max_length(max_n_tokens, loop_config)
-    if force_max_length_capped: 
-        if force_max_length_capped > max_length_capped: 
-            raise ValueError(f"Requested force_max_length_capped = {force_max_length_capped} "
-                f"but model ({loop_config.model_name}) caps inputs at {max_length_capped}")
-        max_length_capped = force_max_length_capped
+    
     if max_n_tokens > max_length_capped: 
         N_documents = chunk_texts(N_documents, max_length_capped, loop_config.OVERLAP)
     N_documents = pad_texts(N_documents,max_length_capped,tokenizer.pad_token_id)
