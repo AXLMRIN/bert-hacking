@@ -50,7 +50,8 @@ class LoopConfig:
         "n_epochs",
         "learning_rate", 
         "weight_decay", 
-        "batch_size"
+        "batch_size", 
+        "seed"
     ]
 
     def __extract_value(self, param_name:str, **kwargs):
