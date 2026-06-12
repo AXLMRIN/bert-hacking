@@ -77,8 +77,9 @@ def in_subsample(loop_config: LoopConfig, subsample_file: str|None)->bool:
             if LoopConfig(**config) == loop_config:
                 return True 
         except:
+            print(config)
             raise ValueError((f"A configuration in the subsample file {subsample_file}"
-                f"Was invalid."))
+                f" was invalid."))
     return False
 
 def create_hash(loop_config:LoopConfig)->str:
