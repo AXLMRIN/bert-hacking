@@ -125,7 +125,7 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
         
         ID_ += batch["ID"]
         GS_ += batch["LABEL"]
-        PRED_ += [loop_config.id2label[int(y_pred)]]
+        PRED_ += [loop_config.id2label[int(y)] for y in y_pred]
         if "ID_CHUNK" in batch:
             ID_chunk_ += batch["ID"]
     print(ID_)
