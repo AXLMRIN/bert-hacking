@@ -6,7 +6,6 @@ import pandas as pd
 from toolbox import (
     LoopConfig, 
     CustomLogger,
-    extract_hyperparameters, 
     sanitize_df, 
     to_saving_logs, 
     already_done,
@@ -23,7 +22,9 @@ def loop():
     with open("./config_files/config-loop.json") as file:
         config_json = json.load(file)
 
-    parameter_names, parameters_values = extract_hyperparameters(config_json)
+    parameter_names = list(config_json["parameters"].keys())
+    parameters_values = list(config_json["parameters"].values())
+
     for dataset_info in config_json["datasets"]:
         df = pd.read_csv(dataset_info["filepath-train"], sep=dataset_info.get("csv-sep", ","))
         df = sanitize_df(df, **dataset_info)

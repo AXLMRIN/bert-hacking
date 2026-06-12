@@ -18,20 +18,6 @@ import smtplib
 
 from . import LoopConfig
 
-def extract_hyperparameters(config_json: dict):
-    """
-    extract the names and values of hyperparameters
-    """
-    parameter_names = [
-        *[name for name in config_json["data-hyperparameters"].keys()],
-        *[name for name in config_json["model-hyperparameters"].keys()],
-    ]
-    parameters_values = [
-        *[values for values in config_json["data-hyperparameters"].values()],
-        *[values for values in config_json["model-hyperparameters"].values()],
-    ]
-    return parameter_names, parameters_values
-
 def create_hash(loop_config:LoopConfig)->str:
     s = str(time()).replace(".","") + f"-{loop_config.dataset_name}-{loop_config.dichotomization_label}"
     h = hashlib.new('sha256')
