@@ -1,3 +1,5 @@
+import sys 
+import getopt 
 import json 
 
 from itertools import product
@@ -53,6 +55,14 @@ def loop():
 if __name__ == "__main__":
 
     reason = []
+    try: 
+        argv = sys.argv[1:] 
+        opts, _ = getopt.getopt(argv, "", ["config-file=", "subsample-file="]) 
+        opts = {k:v for k,v in opts}
+        loop(
+            configuration_file=opts.get("--config-file", "config-loop.json"),
+            subsample_file=opts.get("--subsample-file")
+        )
     except Exception as e:
         print(e)
         reason.append(str(e))
