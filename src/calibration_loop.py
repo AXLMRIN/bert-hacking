@@ -8,7 +8,7 @@ import pandas as pd
 from single_run import single_run
 from toolbox import sanitize_df, LoopConfig
 
-datafile = "./data/ideology_news-stratified_year_balanced.csv"
+datafile = "./data/ideology_news-dataset_for_training.csv"
 loop_config = LoopConfig(
     dataset_name="calibration-loop",
     dichotomization_label="left",
@@ -26,7 +26,7 @@ loop_config = LoopConfig(
     output_dir = "./models/calibration", 
     seed = 31851920,
     device_batch_size = 4, 
-    device_batch_size_for_prediction = 8
+    device_batch_size_for_prediction = 8,
 )
 
 df = pd.read_csv(datafile)
