@@ -57,6 +57,30 @@ def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
         list(config_json["parameters"].keys()),
         list(config_json["parameters"].values()),
     )
+
+def in_subsample(loop_config: LoopConfig, subsample_file: str|None)->bool:
+    if not subsample_file:
+        return True
+    if not subsample_file in os.listdir("./config_files"):
+        raise FileExistsError((f"File {subsample_file} does not exist in ./config_files\n"
+            f"Found:\n{os.listdir('./config_files')}"))
+    
+    with open(f"./config_files/{subsample_file}") as file:
+        subsample = json.load(file)
+
+    if not isinstance(subsample, list):
+        raise TypeError((f"The subsample should be a list of configurations.\n"
+            f"Found ({type(subsample)}):\n{subsample}"))
+    
+    for config in subsample:
+        try: 
+            if LoopConfig(**config) == loop_config:
+                return True 
+        except:
+            raise ValueError((f"A configuration in the subsample file {subsample_file}"
+                f"Was invalid."))
+    return False
+
 def create_hash(loop_config:LoopConfig)->str:
     s = str(time()).replace(".","") + f"-{loop_config.dataset_name}-{loop_config.dichotomization_label}"
     h = hashlib.new('sha256')
