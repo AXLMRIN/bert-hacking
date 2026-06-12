@@ -116,7 +116,6 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
     GS_ = []
     PRED_ = []
     for batch in tqdm(ds.batch(loop_config.device_batch_size_for_prediction), desc="Prediction"):
-        print(batch)
         with no_grad():
             probs = (
                 model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"])
