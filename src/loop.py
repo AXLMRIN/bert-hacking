@@ -51,9 +51,11 @@ def loop():
                 logger("END LOOP" + "#" * 92)
 
 if __name__ == "__main__":
-    try: loop()
+
+    reason = []
     except Exception as e:
-        reason = str(e) 
+        print(e)
+        reason.append(str(e))
     finally: 
         with open("./results/saving_logs.json") as file:
             report = [{
@@ -64,7 +66,6 @@ if __name__ == "__main__":
             ]
             n_success = len(report)
             report = pd.DataFrame(report).groupby(["dataset_name", "dichotomization_label", "model_name"]).size()
-
-        message = f"N success: {n_success}\nReport:\n{report}"
+        message = f"N success: {n_success}\nReport:\n{report}\nReason it stopped:{'  '.join(reason)}"
         send_notification(message)
 
