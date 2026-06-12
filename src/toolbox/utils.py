@@ -18,19 +18,76 @@ import smtplib
 
 from . import LoopConfig
 
-def extract_hyperparameters(config_json: dict):
-    """
-    extract the names and values of hyperparameters
-    """
-    parameter_names = [
-        *[name for name in config_json["data-hyperparameters"].keys()],
-        *[name for name in config_json["model-hyperparameters"].keys()],
-    ]
-    parameters_values = [
-        *[values for values in config_json["data-hyperparameters"].values()],
-        *[values for values in config_json["model-hyperparameters"].values()],
-    ]
-    return parameter_names, parameters_values
+def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
+    """"""
+    if not configuration_file in os.listdir("./config_files"):
+        raise FileExistsError((f"File {configuration_file} does not exist in ./config_files\n"
+            f"Found:\n{os.listdir('./config_files')}"))
+    
+    with open(f"./config_files/{configuration_file}") as file:
+        config_json = json.load(file)
+    
+    if not isinstance(config_json, dict):
+        raise TypeError((f"The config_json should be a dictionary.\n"
+            f"Found ({type(config_json)}):\n{config_json}"))
+    if "datasets" not in config_json:
+        raise KeyError((f"The configuration file must contain an object 'datasets'\n"
+            f"Only found: {list(config_json.keys())}"))
+    if not isinstance(config_json["datasets"], list):
+        raise TypeError((f"The object 'datasets' should be a list.\n"
+            f"Got ({type(config_json['datasets'])}):\n{config_json['datasets']}"))
+    if  not np.array([isinstance(d, dict) for d in config_json["datasets"]]).all():
+        raise TypeError((f"The object 'datasets', must be a list of dictionaries."
+            f"At least one object within this list is not a dictionary"))
+    if not np.array([
+        np.isin(["name", "filepath-train", "filepath-predict", "text_col", "label_col", "id_col"], list(d.keys())).all()
+        for d in config_json["datasets"]
+    ]).all():
+        raise KeyError((f"All dictionaries in the object 'datasets' should contain "
+            "at least the following keys: 'name', 'filepath-train', 'filepath-predict'"
+            " 'text_col', 'label_col', 'id_col'. Some were not found."))
+    if "parameters" not in config_json:
+        raise KeyError((f"The configuration file must contain an object 'parameters'\n"
+            f"Only found: {list(config_json.keys())}"))
+    if not isinstance(config_json["parameters"], dict):
+        raise TypeError(("The object 'parameters' should be a dictionary.\n"
+            f"Got: ({type(config_json['parameters'])})\n{config_json['parameters']}"))
+    return (
+        config_json["datasets"],
+        list(config_json["parameters"].keys()),
+        list(config_json["parameters"].values()),
+    )
+
+def in_subsample(
+    loop_config: LoopConfig, 
+    dataset_name:str, 
+    dichotomization_label:str, 
+    subsample_file: str|None
+)->bool:
+    if not subsample_file:
+        return True
+    if not subsample_file in os.listdir("./config_files"):
+        raise FileExistsError((f"File {subsample_file} does not exist in ./config_files\n"
+            f"Found:\n{os.listdir('./config_files')}"))
+    
+    with open(f"./config_files/{subsample_file}") as file:
+        subsample = json.load(file)
+
+    if not isinstance(subsample, list):
+        raise TypeError((f"The subsample should be a list of configurations.\n"
+            f"Found ({type(subsample)}):\n{subsample}"))
+    
+    ds_info={"dataset_name":dataset_name, "dichotomization_label":dichotomization_label}
+    for config in subsample:
+        try: 
+            if LoopConfig(**ds_info,**config) == loop_config:
+                return True 
+        except Exception as e:
+            print(config)
+            print(e)
+            raise ValueError((f"A configuration in the subsample file {subsample_file}"
+                f" was invalid."))
+    return False
 
 def create_hash(loop_config:LoopConfig)->str:
     s = str(time()).replace(".","") + f"-{loop_config.dataset_name}-{loop_config.dichotomization_label}"

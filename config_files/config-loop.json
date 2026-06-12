@@ -10,7 +10,7 @@
             "extra_cols_to_keep" : ["year"]
         }
     ],
-    "data-hyperparameters":{
+    "parameters":{
         "N_annotated": [
             500, 
             1000, 
@@ -31,9 +31,7 @@
             {"balance":0.25    , "stratified": "year"},
             {"balance":0.50    , "stratified": "year"},
             {"balance":0.75    , "stratified": "year"}
-        ]
-    },
-    "model-hyperparameters":{
+        ],
         "model_name": [
             "google-bert/bert-base-uncased"
         ],
@@ -46,9 +44,9 @@
         ],
         "weight_decay":[
             0.0,
-            0.001,
             0.01,
-            0.05
+            0.03,
+            0.1
         ], 
         "batch_size":[8, 16, 32], 
         "seed" : [42]

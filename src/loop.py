@@ -1,3 +1,5 @@
+import sys 
+import getopt 
 import json 
 
 from itertools import product
@@ -6,7 +8,8 @@ import pandas as pd
 from toolbox import (
     LoopConfig, 
     CustomLogger,
-    extract_hyperparameters, 
+    get_config,
+    in_subsample,
     sanitize_df, 
     to_saving_logs, 
     already_done,
@@ -19,12 +22,10 @@ DEVICE_BATCH_SIZE = 4
 DEVICE_BATCH_SIZE_FOR_PREDICTION = 256
 logger = CustomLogger("./custom_logs")
 
-def loop():
-    with open("./config_files/config-loop.json") as file:
-        config_json = json.load(file)
+def loop(configuration_file : str, subsample_file: str|None = None):
 
-    parameter_names, parameters_values = extract_hyperparameters(config_json)
-    for dataset_info in config_json["datasets"]:
+    datasets_config, parameter_names,parameters_values = get_config(configuration_file)
+    for dataset_info in datasets_config:
         df = pd.read_csv(dataset_info["filepath-train"], sep=dataset_info.get("csv-sep", ","))
         df = sanitize_df(df, **dataset_info)
         labels = list(df["LABEL"].unique())
@@ -44,15 +45,27 @@ def loop():
                 logger.start_loop_log(loop_config)
                 if already_done(loop_config):
                     logger("Loop already done, skipping")
+                if not in_subsample(loop_config,dataset_info['name'], label, subsample_file):
+                    logger("Loop not in subsample, skipping")
                 else:   
                     hash_, to_save = single_run(df, df_prediction, loop_config)
                     to_saving_logs(hash_, to_save)
                 logger("END LOOP" + "#" * 92)
 
 if __name__ == "__main__":
-    try: loop()
+
+    reason = []
+    try: 
+        argv = sys.argv[1:] 
+        opts, _ = getopt.getopt(argv, "", ["config-file=", "subsample-file="]) 
+        opts = {k:v for k,v in opts}
+        loop(
+            configuration_file=opts.get("--config-file", "config-loop.json"),
+            subsample_file=opts.get("--subsample-file")
+        )
     except Exception as e:
-        reason = str(e) 
+        print(e)
+        reason.append(str(e))
     finally: 
         with open("./results/saving_logs.json") as file:
             report = [{
@@ -63,7 +76,6 @@ if __name__ == "__main__":
             ]
             n_success = len(report)
             report = pd.DataFrame(report).groupby(["dataset_name", "dichotomization_label", "model_name"]).size()
-
-        message = f"N success: {n_success}\nReport:\n{report}"
+        message = f"N success: {n_success}\nReport:\n{report}\nReason it stopped:{'  '.join(reason)}"
         send_notification(message)
 
