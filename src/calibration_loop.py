@@ -18,7 +18,7 @@ loop_config = LoopConfig(
     splits_ratio = [70, 15, 15],
 
     model_name = "google-bert/bert-base-uncased", 
-    n_epochs = 2, 
+    n_epochs = 5, 
     learning_rate = 1e-5,
     weight_decay = .3,
     batch_size = 16, 
