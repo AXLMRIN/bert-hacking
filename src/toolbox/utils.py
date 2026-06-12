@@ -76,8 +76,9 @@ def in_subsample(loop_config: LoopConfig, subsample_file: str|None)->bool:
         try: 
             if LoopConfig(**config) == loop_config:
                 return True 
-        except:
+        except Exception as e:
             print(config)
+            print(e)
             raise ValueError((f"A configuration in the subsample file {subsample_file}"
                 f" was invalid."))
     return False
