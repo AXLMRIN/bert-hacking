@@ -8,6 +8,7 @@ import pandas as pd
 from toolbox import (
     LoopConfig, 
     CustomLogger,
+    get_config,
     sanitize_df, 
     to_saving_logs, 
     already_done,
@@ -20,14 +21,10 @@ DEVICE_BATCH_SIZE = 4
 DEVICE_BATCH_SIZE_FOR_PREDICTION = 256
 logger = CustomLogger("./custom_logs")
 
-def loop():
-    with open("./config_files/config-loop.json") as file:
-        config_json = json.load(file)
+def loop(configuration_file : str, subsample_file: str|None = None):
 
-    parameter_names = list(config_json["parameters"].keys())
-    parameters_values = list(config_json["parameters"].values())
-
-    for dataset_info in config_json["datasets"]:
+    datasets_config, parameter_names,parameters_values = get_config(configuration_file)
+    for dataset_info in datasets_config:
         df = pd.read_csv(dataset_info["filepath-train"], sep=dataset_info.get("csv-sep", ","))
         df = sanitize_df(df, **dataset_info)
         labels = list(df["LABEL"].unique())

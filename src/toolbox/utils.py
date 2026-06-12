@@ -18,6 +18,45 @@ import smtplib
 
 from . import LoopConfig
 
+def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
+    """"""
+    if not configuration_file in os.listdir("./config_files"):
+        raise FileExistsError((f"File {configuration_file} does not exist in ./config_files\n"
+            f"Found:\n{os.listdir('./config_files')}"))
+    
+    with open(f"./config_files/{configuration_file}") as file:
+        config_json = json.load(file)
+    
+    if not isinstance(config_json, dict):
+        raise TypeError((f"The config_json should be a dictionary.\n"
+            f"Found ({type(config_json)}):\n{config_json}"))
+    if "datasets" not in config_json:
+        raise KeyError((f"The configuration file must contain an object 'datasets'\n"
+            f"Only found: {list(config_json.keys())}"))
+    if not isinstance(config_json["datasets"], list):
+        raise TypeError((f"The object 'datasets' should be a list.\n"
+            f"Got ({type(config_json['datasets'])}):\n{config_json['datasets']}"))
+    if  not np.array([isinstance(d, dict) for d in config_json["datasets"]]).all():
+        raise TypeError((f"The object 'datasets', must be a list of dictionaries."
+            f"At least one object within this list is not a dictionary"))
+    if not np.array([
+        np.isin(["name", "filepath-train", "filepath-predict", "text_col", "label_col", "id_col"], list(d.keys())).all()
+        for d in config_json["datasets"]
+    ]).all():
+        raise KeyError((f"All dictionaries in the object 'datasets' should contain "
+            "at least the following keys: 'name', 'filepath-train', 'filepath-predict'"
+            " 'text_col', 'label_col', 'id_col'. Some were not found."))
+    if "parameters" not in config_json:
+        raise KeyError((f"The configuration file must contain an object 'parameters'\n"
+            f"Only found: {list(config_json.keys())}"))
+    if not isinstance(config_json["parameters"], dict):
+        raise TypeError(("The object 'parameters' should be a dictionary.\n"
+            f"Got: ({type(config_json['parameters'])})\n{config_json['parameters']}"))
+    return (
+        config_json["datasets"],
+        list(config_json["parameters"].keys()),
+        list(config_json["parameters"].values()),
+    )
 def create_hash(loop_config:LoopConfig)->str:
     s = str(time()).replace(".","") + f"-{loop_config.dataset_name}-{loop_config.dichotomization_label}"
     h = hashlib.new('sha256')
