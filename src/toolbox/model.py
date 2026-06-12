@@ -124,21 +124,24 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
             )
         y_pred = np.argmax(probs, axis = 1).reshape(-1)
         
-        ID_ += batch["ID"].cpu().numpy()
-        GS_ += batch["LABEL"].cpu().numpy()
+        ID_ += batch["ID"]
+        GS_ += batch["LABEL"]
         PRED_ += [loop_config.id2label[int(y_pred)]]
         if "ID_CHUNK" in batch:
-            ID_chunk_ += batch["ID"].cpu().numpy()
+            ID_chunk_ += batch["ID"]
+    print(ID_)
+    print(GS_)
+    print(PRED_)
     if len(ID_chunk_)>0:
         return pd.DataFrame({
-            "ID": np.concat(ID_), 
-            "ID_CHUNK":np.concat(ID_chunk_), 
-            "GS-LABEL":np.concat(GS_), 
-            "PRED-LABEL":np.concat(PRED_)
+            "ID": ID_, 
+            "ID_CHUNK":ID_chunk_, 
+            "GS-LABEL":GS_, 
+            "PRED-LABEL":PRED_
         }).set_index("ID")
     
     return pd.DataFrame({
-        "ID": np.concat(ID_), 
-        "GS-LABEL": np.concat(GS_), 
-        "PRED-LABEL": np.concat(PRED_)
+        "ID": ID_, 
+        "GS-LABEL": GS_, 
+        "PRED-LABEL": PRED_
     }).set_index("ID")
