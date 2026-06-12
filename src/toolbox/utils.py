@@ -58,7 +58,12 @@ def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
         list(config_json["parameters"].values()),
     )
 
-def in_subsample(loop_config: LoopConfig, subsample_file: str|None)->bool:
+def in_subsample(
+    loop_config: LoopConfig, 
+    dataset_name:str, 
+    dichotomization_label:str, 
+    subsample_file: str|None
+)->bool:
     if not subsample_file:
         return True
     if not subsample_file in os.listdir("./config_files"):
@@ -72,9 +77,10 @@ def in_subsample(loop_config: LoopConfig, subsample_file: str|None)->bool:
         raise TypeError((f"The subsample should be a list of configurations.\n"
             f"Found ({type(subsample)}):\n{subsample}"))
     
+    ds_info={"dataset_name":dataset_name, "dichotomization_label":dichotomization_label}
     for config in subsample:
         try: 
-            if LoopConfig(**config) == loop_config:
+            if LoopConfig(**ds_info,**config) == loop_config:
                 return True 
         except Exception as e:
             print(config)
