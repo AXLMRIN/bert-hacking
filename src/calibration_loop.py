@@ -14,19 +14,19 @@ loop_config = LoopConfig(
     dichotomization_label="left",
 
     N_annotated = 1000, 
-    sampling_method = "random",
+    sampling_method = {"balance": 0.5},
     splits_ratio = [70, 15, 15],
 
     model_name = "google-bert/bert-base-uncased", 
     n_epochs = 2, 
-    learning_rate = 3e-4, 
+    learning_rate = 1e-5,
     weight_decay = .3,
     batch_size = 16, 
 
     output_dir = "./models/calibration", 
     seed = 31851920,
     device_batch_size = 4, 
-    test_mode = False #FIXME
+    device_batch_size_for_prediction = 8
 )
 
 df = pd.read_csv(datafile)
