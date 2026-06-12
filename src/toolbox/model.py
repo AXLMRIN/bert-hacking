@@ -106,6 +106,7 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
     if loop_config.test_mode: ds = ds.select(range(20))
 
     ds = ds.with_format("torch", device=device)
+    print(ds)
     model = model.to(device=device)
     model.eval()
     if str(device)=="cuda": model = model.bfloat16()
@@ -115,6 +116,7 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
     GS_ = []
     PRED_ = []
     for batch in tqdm(ds.batch(loop_config.device_batch_size_for_prediction), desc="Prediction"):
+        print(batch)
         with no_grad():
             probs = (
                 model(input_ids = batch["input_ids"], attention_mask= batch["attention_mask"])
