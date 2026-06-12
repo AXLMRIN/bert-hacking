@@ -106,7 +106,6 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
     if loop_config.test_mode: ds = ds.select(range(20))
 
     ds = ds.with_format("torch", device=device)
-    print(ds)
     model = model.to(device=device)
     model.eval()
     if str(device)=="cuda": model = model.bfloat16()
@@ -128,9 +127,6 @@ def predict(model, ds : Dataset, loop_config: LoopConfig)->pd.DataFrame:
         PRED_ += [loop_config.id2label[int(y)] for y in y_pred]
         if "ID_CHUNK" in batch:
             ID_chunk_ += batch["ID"]
-    print(ID_)
-    print(GS_)
-    print(PRED_)
     if len(ID_chunk_)>0:
         return pd.DataFrame({
             "ID": ID_, 
