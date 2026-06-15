@@ -7,7 +7,7 @@ import pandas as pd
 from transformers import AutoConfig
 from tqdm import tqdm
 
-from . import LoopConfig, load_tokenizer, CustomLogger
+from . import LoopConfig, load_tokenizer
 
 def sanitize_df(
     df: pd.DataFrame, 
@@ -53,7 +53,6 @@ def dichotomize(df: pd.DataFrame, loop_config: LoopConfig) -> tuple[pd.DataFrame
     Dichotomize dataframe given a label
     """
     label = loop_config.dichotomization_label
-    CustomLogger()(df)#TODELETE
     if label not in df["LABEL"].values:
         raise ValueError(f"Label ({label}) not in df[\"LABEL\"]. "
                          f"Available labels: {df['LABEL'].unique()}")
