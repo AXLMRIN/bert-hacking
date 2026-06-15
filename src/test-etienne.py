@@ -16,7 +16,12 @@ loop_config = tb.LoopConfig(
     dichotomization_label="ad_populum", 
     
     model_name = 'camembert/camembert-base', 
-    test_mode = True
+    n_epochs = 3, 
+    learning_rate = 0.00001, 
+    weight_decay = 0.01,
+    batch_size = 16,
+
+    device_batch_size_for_prediction = 64
 )
 
 
