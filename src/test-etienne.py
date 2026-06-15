@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from tqdm import tqdm
 from torch import no_grad
 import numpy as np
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 
 import toolbox as tb
 
@@ -122,8 +122,10 @@ PROBS_POS = np.concatenate(PROBS_POS)
 print("#"*50)
 print("Regular: argmax")
 print(classification_report(y_true = GS_, y_pred = PRED_, zero_division=np.nan))
+print(confusion_matrix(y_true = GS_, y_pred = PRED_))
 
 for t in THRESHOLD_TO_TRY:
     print("#"*50)
     print(f"Threshold {t}")
     print(classification_report(y_true=GS_, y_pred = [ID2LABEL[int(p > t)] for p in PROBS_POS], zero_division=np.nan))
+    print(confusion_matrix(y_true = GS_, y_pred = [ID2LABEL[int(p > t)] for p in PROBS_POS]))
