@@ -12,3 +12,4 @@ predictions_save/
 # Don't save updates of the results
 results/
 predictions_save_onyxia
+**/.ipynb_checkpoints
