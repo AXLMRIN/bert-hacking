@@ -169,6 +169,20 @@ def single_run(
 
     return hash_, logs_to_save
 
+def single_run_dummy(
+    df : pd.DataFrame,
+    df_prediction: pd.DataFrame,
+    loop_config : LoopConfig,
+) -> tuple[str, dict | None]: 
+    """Dummy function to test the loop"""
+    hash_, logs_to_save = create_hash(loop_config), None
+    logs_to_save = {
+        "THIS IS DUMMY": "it is",
+        **loop_config.to_dict(),
+        "time": str(pd.Timestamp.now())
+    }
+    return hash_, logs_to_save
+
 if __name__=="__main__":
     # Implement the python -u single_run.py XXX
 
