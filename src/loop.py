@@ -16,7 +16,7 @@ from toolbox import (
     get_report,
     send_notification
 )
-from single_run import single_run_dummy
+from single_run import single_run
 
 TEST_MODE = False
 DEVICE_BATCH_SIZE = 4
@@ -44,7 +44,7 @@ def loop(configuration_file : str, subsample_file: str|None = None):
                 )
                 if not already_done(loop_config) and in_subsample(loop_config,dataset_info['name'], label, subsample_file):
                     logger.start_loop_log(loop_config)
-                    hash_, to_save = single_run_dummy(df, df_prediction, loop_config)
+                    hash_, to_save = single_run(df, df_prediction, loop_config)
                     to_saving_logs(hash_, to_save)
                     logger("END LOOP" + "#" * 92)
 
