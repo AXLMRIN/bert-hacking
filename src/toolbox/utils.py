@@ -317,10 +317,11 @@ def get_df_with_metadata(run_info: dict, datasets_config: list[dict]) -> pd.Data
     )
     return output, metadata_columns
 
-def save_errors(run_hash, to_save) -> None:
+def save_errors(batch_run_hash: list[str], batch_to_save: list[str]) -> None:
     with open("./results/errors_save.json") as file:
         all_ = json.load(file)
-    all_[run_hash] = to_save 
+    for hash_, to_save in zip(batch_run_hash, batch_to_save):
+        all_[hash_] = to_save 
     with open("./results/errors_save.json", "w") as file:
         json.dump(all_, file, ensure_ascii=True)
 

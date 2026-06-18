@@ -23,6 +23,8 @@ def regression_loop(configuration_filename: str, saving_logs_filename: str) -> N
     for run_hash, run_info in tqdm(all_run_info_for_regression.items(), position=0):
         df_regression, metadata_columns = get_df_with_metadata(run_info, datasets_config)
         for regression_col in metadata_columns:
+            batch_regression_hash = []
+            batch_to_save = []
             for regression_unique_value in df_regression[regression_col].unique():
                 
                 regression_hash = create_hash_from_string(f"{run_hash}-{regression_col}-{regression_unique_value}")
@@ -35,15 +37,15 @@ def regression_loop(configuration_filename: str, saving_logs_filename: str) -> N
                     regression_col, 
                     regression_unique_value
                 )
-                save_errors(
-                    regression_hash, 
-                    {
-                        **run_info,
-                        "regression_col": regression_col, 
-                        "regression_unique_value": regression_unique_value, 
-                        **output,   
-                    }
-                )
+                batch_regression_hash += [regression_hash]
+                batch_to_save += [{
+                    **run_info,
+                    "regression_col": regression_col, 
+                    "regression_unique_value": regression_unique_value, 
+                    **output,   
+                }]
+        
+            save_errors(batch_regression_hash, batch_to_save)
     
 if __name__ == "__main__":
     reason = []
