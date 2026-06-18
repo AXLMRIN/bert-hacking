@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np 
 import statsmodels.api as sm
 
-from . import ensure_no_na
+from . import ensure_no_na, CustomLogger
 
 def perform_regression(
     y_column: pd.Series, 
@@ -21,7 +21,14 @@ def perform_regression(
     try: 
         model = sm.Logit(Y,X, )
         res = model.fit(maxiter=100, method=optimizer, disp=0)
-
+        if len(model.exog_names) == 1:
+            #TODELETE
+            logger = CustomLogger()
+            logger("X.value_counts()", type="REGRESSION")
+            logger(X.value_counts(), type="REGRESSION")
+            logger("Y.value_counts()", type="REGRESSION")
+            logger(Y.value_counts(), type="REGRESSION")
+            
         return {
             "success":True,
             "optimizer": optimizer,
@@ -68,8 +75,15 @@ def assess_errors(
     if not (pred_reg_results["success"] and gold_reg_results["success"]):
         return {}
     
-    gold_index_x1 = gold_reg_results["Covariate Names"].index("x1")
-    pred_index_x1 = pred_reg_results["Covariate Names"].index("x1")
+    try: 
+        gold_index_x1 = gold_reg_results["Covariate Names"].index("x1")
+        pred_index_x1 = pred_reg_results["Covariate Names"].index("x1")
+    except:
+        #TODELETE
+        logger = CustomLogger()
+        logger("gold: ", gold_reg_results["Covariate Names"], type="REGRESSION")
+        logger("pred: ", pred_reg_results["Covariate Names"], type="REGRESSION")
+        return {"error": "can't find x1"}
     if gold_index_x1 not in [0,1]: raise ValueError(f"Issue with gold_index_x1, found {gold_index_x1}, should be either 0 or 1")
     if pred_index_x1 not in [0,1]: raise ValueError(f"Issue with pred_index_x1, found {pred_index_x1}, should be either 0 or 1")
 
