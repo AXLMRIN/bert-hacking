@@ -26,10 +26,11 @@ def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
     
     with open(f"./config_files/{configuration_file}") as file:
         config_json = json.load(file)
-    
     if not isinstance(config_json, dict):
         raise TypeError((f"The config_json should be a dictionary.\n"
             f"Found ({type(config_json)}):\n{config_json}"))
+    
+    # Datasets checkup 
     if "datasets" not in config_json:
         raise KeyError((f"The configuration file must contain an object 'datasets'\n"
             f"Only found: {list(config_json.keys())}"))
@@ -39,19 +40,31 @@ def get_config(configuration_file: str) -> tuple[list[dict], list[str], list]:
     if  not np.array([isinstance(d, dict) for d in config_json["datasets"]]).all():
         raise TypeError((f"The object 'datasets', must be a list of dictionaries."
             f"At least one object within this list is not a dictionary"))
-    if not np.array([
-        np.isin(["name", "filepath-train", "filepath-predict", "text_col", "label_col", "id_col", "labels"], list(d.keys())).all()
-        for d in config_json["datasets"]
-    ]).all():
+    columns_to_find_in_dict = [
+        "name", 
+        "filepath-train", 
+        "filepath-predict", 
+        "text_col", 
+        "label_col", 
+        "id_col", 
+        "labels", 
+        "filepath-metadata", 
+        "columns-for-independant-variables"
+    ]
+    if not np.array([np.isin(columns_to_find_in_dict, list(d.keys())).all() 
+        for d in config_json["datasets"]]).all():
         raise KeyError((f"All dictionaries in the object 'datasets' should contain "
-            "at least the following keys: 'name', 'filepath-train', 'filepath-predict'"
-            " 'text_col', 'label_col', 'id_col'. Some were not found."))
+            f"at least the following keys: {', '.join(columns_to_find_in_dict)}"
+            "Some were not found."))
+    
+    # Parameters checkup
     if "parameters" not in config_json:
         raise KeyError((f"The configuration file must contain an object 'parameters'\n"
             f"Only found: {list(config_json.keys())}"))
     if not isinstance(config_json["parameters"], dict):
         raise TypeError(("The object 'parameters' should be a dictionary.\n"
             f"Got: ({type(config_json['parameters'])})\n{config_json['parameters']}"))
+    
     return (
         config_json["datasets"],
         list(config_json["parameters"].keys()),
