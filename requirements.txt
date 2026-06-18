@@ -9,3 +9,4 @@ tiktoken
 sentencepiece
 protobuf
 python-dotenv
+statsmodels
