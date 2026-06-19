@@ -21,13 +21,13 @@ def perform_regression(
     try: 
         model = sm.Logit(Y,X, )
         res = model.fit(maxiter=100, method=optimizer, disp=0)
-        if len(model.exog_names) == 1:
+        if len(model.exog_names) == 1:pass
             #TODELETE
-            logger = CustomLogger()
-            logger("x_column.value_counts()", type="REGRESSION")
-            logger(x_column.value_counts(), type="REGRESSION")
-            logger("y_column.value_counts()", type="REGRESSION")
-            logger(y_column.value_counts(), type="REGRESSION")
+            # logger = CustomLogger()
+            # logger("x_column.value_counts()", type="REGRESSION")
+            # logger(x_column.value_counts(), type="REGRESSION")
+            # logger("y_column.value_counts()", type="REGRESSION")
+            # logger(y_column.value_counts(), type="REGRESSION")
             
         return {
             "success":True,
@@ -80,9 +80,9 @@ def assess_errors(
         pred_index_x1 = pred_reg_results["Covariate Names"].index("x1")
     except:
         #TODELETE
-        logger = CustomLogger()
-        logger(f"gold: \n {gold_reg_results['Covariate Names']}", type="REGRESSION")
-        logger(f"pred: \n {pred_reg_results['Covariate Names']}", type="REGRESSION")
+        # logger = CustomLogger()
+        # logger(f"gold: \n {gold_reg_results['Covariate Names']}", type="REGRESSION")
+        # logger(f"pred: \n {pred_reg_results['Covariate Names']}", type="REGRESSION")
         return {"error": "can't find x1"}
     if gold_index_x1 not in [0,1]: raise ValueError(f"Issue with gold_index_x1, found {gold_index_x1}, should be either 0 or 1")
     if pred_index_x1 not in [0,1]: raise ValueError(f"Issue with pred_index_x1, found {pred_index_x1}, should be either 0 or 1")
