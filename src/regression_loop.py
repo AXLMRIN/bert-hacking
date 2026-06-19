@@ -1,3 +1,4 @@
+import os
 import getopt
 import sys 
 import warnings
@@ -22,6 +23,8 @@ def regression_loop(configuration_filename: str, saving_logs_filename: str) -> N
     all_run_info_for_regression = get_run_info_for_regression(saving_logs_filename)
 
     for run_hash, run_info in tqdm(all_run_info_for_regression.items(), position=0):
+        if f"{run_hash}.json" in os.listdir("./results/regressions"):
+            continue
         df_regression, metadata_columns = get_df_with_metadata(run_info, datasets_config)
         batch_regressions = {}
         for regression_col in metadata_columns:
