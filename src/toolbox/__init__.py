@@ -15,9 +15,13 @@ if not Path("./predictions_save").is_dir(): os.mkdir("./predictions_save")
 if not Path("./results/saving_logs.json").exists():
     with open("./results/saving_logs.json", "w") as file:
         json.dump({}, file)
+if not Path("./results/regressions").is_dir(): os.mkdir("./results/regressions")
+
 
 from .LoopConfig import *
 from .CustomLogger import *
 from .utils import *
 from .preprocess import *
 from .model import *
+from .assessment import *
+from .regression import *
